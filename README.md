@@ -1,5 +1,5 @@
 # QtComposition
-运行与Qt的一个支持依赖注入的组件容器
+运行于Qt的一个支持依赖注入的组件容器，参考.NET的 [MEF](https://docs.microsoft.com/en-us/dotnet/framework/mef/) 架构
 
 # 特性：
 + 依赖导出
