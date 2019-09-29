@@ -33,7 +33,7 @@ static QExport<QTestComposition> export_qtest;
 ```
 获取释放对象
 ```cpp
-    QComponentContainer c;
-    QTestComposition * test = c.get_export_value<QTestComposition>(QPart::nonshared);
-    c.release_value(test);
+QComponentContainer c;
+QTestComposition * test = c.get_export_value<QTestComposition>(QPart::nonshared);
+c.release_value(test);
 ```
