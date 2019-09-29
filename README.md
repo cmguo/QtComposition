@@ -26,8 +26,8 @@
 
 # 使用：
 通过全局变量初始化，注册导入和导出：
-(```)
+```cpp
 static QImport<QTestComposition, QObject> import_qtest_impl("impl");
 static QImportMany<QTestComposition, QObject> import_qtest_impls("impls", QPart::nonshared, true);
 static QExport<QTestComposition> export_qtest;
-(```)
+```
