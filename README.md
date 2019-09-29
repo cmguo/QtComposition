@@ -31,3 +31,9 @@ static QImport<QTestComposition, QObject> import_qtest_impl("impl");
 static QImportMany<QTestComposition, QObject> import_qtest_impls("impls", QPart::nonshared, true);
 static QExport<QTestComposition> export_qtest;
 ```
+获取释放对象
+```cpp
+    QComponentContainer c;
+    QTestComposition * test = c.get_export_value<QTestComposition>(QPart::nonshared);
+    c.release_value(test);
+```
