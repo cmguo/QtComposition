@@ -5,29 +5,10 @@
 #include <QVariant>
 
 QImportBase::QImportBase(QMetaObject const * meta, char const * prop)
-    : QPart(meta, meta, nullptr, Share::any, false)
+    : QPart(meta, false)
     , prop_(prop)
     , count_(Import::exactly)
     , lazy_(false)
-{
-}
-
-QImportBase::QImportBase(QMetaObject const * meta, char const * prop,
-                         QMetaObject const * type)
-    : QPart(meta, type, nullptr, Share::any, false)
-    , prop_(prop)
-    , count_(Import::exactly)
-    , lazy_(false)
-{
-}
-
-QImportBase::QImportBase(QMetaObject const * meta, char const * prop,
-                         Share share, bool lazy,
-                         QMetaObject const * type, char const * name)
-    : QPart(meta, type, name, share, false)
-    , prop_(prop)
-    , count_(Import::exactly)
-    , lazy_(lazy)
 {
 }
 

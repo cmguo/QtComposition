@@ -3,15 +3,15 @@
 
 QLazy::QLazy()
     : cont_(nullptr)
-    , meta_(nullptr)
+    , part_(nullptr)
     , share_(false)
     , obj_(nullptr)
 {
 }
 
-QLazy::QLazy(QComponentContainer * cont, QMetaObject const * meta, bool share)
+QLazy::QLazy(QComponentContainer * cont, QPart const * part, bool share)
     : cont_(cont)
-    , meta_(meta)
+    , part_(part)
     , share_(share)
     , obj_(nullptr)
 {
@@ -23,4 +23,3 @@ QObject * QLazy::get_()
         obj_ = cont_->get_export_value(*this);
     return obj_;
 }
-

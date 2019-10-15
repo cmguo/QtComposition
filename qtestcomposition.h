@@ -1,5 +1,5 @@
-#ifndef QTEST_H
-#define QTEST_H
+#ifndef QTESTCOMPOSITION_H
+#define QTESTCOMPOSITION_H
 
 #include "QtComposition_global.h"
 
@@ -21,11 +21,11 @@ public:
 signals:
 
 public slots:
-    void on_composition();
+    void onComposition();
 
 private:
     QObject * impl_;
     std::vector<QLazy> impls_;
 };
 
-#endif // QTEST_H
+#endif // QTESTCOMPOSITION_H

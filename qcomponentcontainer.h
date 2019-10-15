@@ -2,8 +2,11 @@
 #define QCOMPONENTCONTAINER_H
 
 #include "QtComposition_global.h"
+#include "qcomponentregistry.h"
 #include "qimport.h"
 #include "qlazy.h"
+
+#include <functional>
 
 class QTCOMPOSITION_EXPORT QComponentContainer
 {
@@ -64,8 +67,20 @@ public:
 
     QObject * get_export_value(QLazy const & lazy);
 
+    typedef std::function<QObject *(QMetaObject const &)> creator_t;
+
+    template<typename ...Args>
+    QObject * get_export_value(QLazy const & lazy, Args&&... args)
+    {
+        return get_export_value(*lazy.part_->meta_, false, [this, args...](QMetaObject const & meta) {
+            return meta.newInstance(std::move(args)...);
+        });
+    }
+
 private:
     QObject * get_export_value(QPart const & i, QPart const & e);
+
+    QObject * get_export_value(QMetaObject const & meta, bool share, creator_t const & creator);
 
     QObject * get_export_value(QMetaObject const & meta, bool share);
 

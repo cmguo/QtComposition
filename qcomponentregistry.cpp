@@ -44,7 +44,7 @@ void QComponentRegistry::composition()
     }
     while (count < invalids.size()) {
         QMetaObject const * meta = invalids[count++];
-        for (auto m : metas_) {
+        for (auto &m : metas_) {
             if (m.second.invalid)
                 continue;
             for (QImportBase * i : m.second.imports) {
@@ -62,10 +62,10 @@ void QComponentRegistry::composition()
     }
 }
 
-QObject * QComponentRegistry::create(QComponentContainer * cont, QMetaObject const & type)
+void QComponentRegistry::compose(
+        QComponentContainer * cont, QMetaObject const & type, QObject * obj)
 {
     Meta const & meta = metas_[&type];
-    QObject * obj = type.newInstance();
     for (auto i : meta.imports) {
         if (i->count_ == QImportBase::many)
             if (i->lazy_)
@@ -78,8 +78,7 @@ QObject * QComponentRegistry::create(QComponentContainer * cont, QMetaObject con
             else
                 i->compose(obj, cont->get_export_value(*i));
     }
-    type.invokeMethod(obj, "on_composition");
-    return obj;
+    type.invokeMethod(obj, "onComposition");
 }
 
 QComponentRegistry::Meta & QComponentRegistry::get_meta(QMetaObject const * meta)

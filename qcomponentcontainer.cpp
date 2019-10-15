@@ -13,23 +13,34 @@ QObject * QComponentContainer::get_export_value(QPart const & i, QPart const & e
 
 QObject * QComponentContainer::get_export_value(QLazy const & lazy)
 {
-    return get_export_value(*lazy.meta_, lazy.share_);
+    return get_export_value(*lazy.part_->meta_, lazy.share_);
 }
 
 QObject * QComponentContainer::get_export_value(QMetaObject const & meta, bool share)
+{
+    return get_export_value(meta, share, [](auto meta) {
+        return meta.newInstance();
+    });
+}
+
+QObject * QComponentContainer::get_export_value(
+        QMetaObject const & meta, bool share,
+        std::function<QObject *(QMetaObject const &)> const & creator)
 {
     QObject * o = nullptr;
     if (share) {
         auto it = shared_objs_.find(&meta);
         if (it == shared_objs_.end()) {
-            o = QComponentRegistry::create(this, meta);
+            o = creator(meta);
+            QComponentRegistry::compose(this, meta, o);
             shared_objs_.insert(std::make_pair(&meta, o));
         } else {
             o = it->second;
         }
     } else {
         temp_non_shared_objs_.push_back(std::vector<QObject *>());
-        o = QComponentRegistry::create(this, meta);
+        o = creator(meta);
+        QComponentRegistry::compose(this, meta, o);
         auto it = non_shared_objs_.insert(std::make_pair(o, std::vector<QObject *>()));
         it.first->second.swap(temp_non_shared_objs_.back());
         temp_non_shared_objs_.pop_back();
@@ -97,7 +108,7 @@ QLazy QComponentContainer::get_export(QPart const & i)
     if (exports.size() > 1)
         return QLazy();
     QExportBase const * e = exports.front();
-    return QLazy(this, e->meta_, e->share(i));
+    return QLazy(this, e, e->share(i));
 }
 
 QLazy QComponentContainer::get_export(QMetaObject const & meta, QPart::Share share)
@@ -115,7 +126,7 @@ std::vector<QLazy> QComponentContainer::get_exports(QPart const & i)
     auto exports = QComponentRegistry::get_exports(i);
     std::vector<QLazy> list;
     for (auto e : exports)
-        list.push_back(QLazy(this, e->meta_, e->share(i)));
+        list.push_back(QLazy(this, e, e->share(i)));
     return list;
 }
 

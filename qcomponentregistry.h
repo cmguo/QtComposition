@@ -19,9 +19,9 @@ public:
 
     static void composition();
 
-    static QObject * create(QComponentContainer * cont, QMetaObject const & type);
-
     static std::vector<QExportBase const *> get_exports(QPart const & i);
+
+    static void compose(QComponentContainer * cont, QMetaObject const & type, QObject * obj);
 
 private:
     struct Meta;

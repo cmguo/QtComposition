@@ -11,11 +11,11 @@ QPart::QPart(QMetaObject const * meta, QMetaObject const * type, char const * na
 {
 }
 
-QPart::QPart(QMetaObject const * meta, QMetaObject const * type, char const * name, Share share, bool isExport)
+QPart::QPart(QMetaObject const * meta, bool isExport)
     : meta_(meta)
-    , type_(type)
-    , name_(name)
-    , share_(share)
+    , type_(meta)
+    , name_(nullptr)
+    , share_(any)
 {
     if (isExport)
         QComponentRegistry::add_export(static_cast<QExportBase *>(this));
@@ -26,7 +26,19 @@ QPart::QPart(QMetaObject const * meta, QMetaObject const * type, char const * na
 bool QPart::match(const QPart &i) const
 {
     return (type_ == i.type_ || i.type_ == nullptr) && strcmp(name(), i.name()) == 0
-            && (share_ == any || i.share_ == any || share_ == i.share_);
+            && (share_ == any || i.share_ == any || share_ == i.share_)
+            && attrMatch(i);
+}
+
+bool QPart::attrMatch(const QPart &i) const
+{
+    auto iter = i.attrs_.begin();
+    for (; iter != i.attrs_.end(); ++iter) {
+        char const * my = attrs_.value(iter.key());
+        if (my == nullptr || strcmp(my, *iter))
+            return false;
+    }
+    return true;
 }
 
 bool QPart::share(const QPart &i) const

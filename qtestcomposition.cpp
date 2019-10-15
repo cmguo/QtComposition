@@ -12,7 +12,7 @@ QTestComposition::QTestComposition(QObject *parent) : QObject(parent)
 
 }
 
-void QTestComposition::on_composition()
+void QTestComposition::onComposition()
 {
     for (auto l : impls_)
         l.get<QObject>();

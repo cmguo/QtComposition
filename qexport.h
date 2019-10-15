@@ -13,10 +13,6 @@ class QTCOMPOSITION_EXPORT QExportBase : public QPart
 public:
     QExportBase(QMetaObject const * meta);
 
-    QExportBase(QMetaObject const * meta, QMetaObject const * type);
-
-    QExportBase(QMetaObject const * meta, QMetaObject const * type, char const * name, Share share = Share::any);
-
 private:
     friend class QComponentRegistry;
     friend class QComponentContainer;
@@ -27,19 +23,22 @@ class QExport : QExportBase
 {
 public:
     QExport(Share share = Share::any)
-        : QExportBase(
-              &T::staticMetaObject,
-              &U::staticMetaObject,
-              nullptr, share)
+        : QExportBase(&T::staticMetaObject)
     {
+        config(Type(&U::staticMetaObject), Shared(share));
     }
 
     QExport(char const * name, Share share = Share::any)
-        : QExportBase(
-              &T::staticMetaObject,
-              &U::staticMetaObject,
-              name, share)
+        : QExportBase(&T::staticMetaObject)
     {
+        config(Type(&U::staticMetaObject), Name(name), Shared(share));
+    }
+
+    template <typename ...Args>
+    QExport(Args const & ...args)
+        : QExportBase(&T::staticMetaObject)
+    {
+        config(Type(&U::staticMetaObject), args...);
     }
 
 };

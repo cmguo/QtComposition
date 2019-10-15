@@ -6,6 +6,7 @@
 #include <QObject>
 
 class QComponentContainer;
+class QPart;
 
 class QTCOMPOSITION_EXPORT QLazy
 {
@@ -13,7 +14,7 @@ public:
     QLazy();
 
 protected:
-    QLazy(QComponentContainer * cont, QMetaObject const * meta, bool share);
+    QLazy(QComponentContainer * cont, QPart const * part, bool share);
 
 public:
     template<typename T>
@@ -22,10 +23,21 @@ public:
         return qobject_cast<T *>(get_());
     }
 
+    template<typename T, typename ...Args>
+    T * get(Args && ...args);
+
+    template<typename T, typename ...Args>
+    T * create(Args && ...args);
+
     friend
     bool operator==(QLazy const & l, QLazy const & r)
     {
-        return l.cont_ == r.cont_ && l.meta_ == r.meta_ && l.share_ == r.share_;
+        return l.cont_ == r.cont_ && l.part_ == r.part_ && l.share_ == r.share_;
+    }
+
+    QPart const * part() const
+    {
+        return part_;
     }
 
 private:
@@ -34,7 +46,7 @@ private:
 private:
     friend class QComponentContainer;
     QComponentContainer * cont_;
-    QMetaObject const * meta_;
+    QPart const * part_;
     bool share_;
     QObject * obj_;
 };

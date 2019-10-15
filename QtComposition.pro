@@ -32,6 +32,7 @@ HEADERS += \
     qexport.h \
     qimport.h \
     qlazy.h \
+    qlazy.hpp \
     qpart.h \
     qtestcomposition.h
 
