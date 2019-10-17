@@ -47,6 +47,11 @@ void QComponentRegistry::composition()
         for (auto &m : metas_) {
             if (m.second.invalid)
                 continue;
+            if (m.first->inherits(meta)) {
+                m.second.invalid = true;
+                invalids.push_back(m.first);
+                continue;
+            }
             for (QImportBase * i : m.second.imports) {
                 i->exports.erase(
                             std::remove_if(i->exports.begin(), i->exports.end(),
@@ -65,7 +70,14 @@ void QComponentRegistry::composition()
 void QComponentRegistry::compose(
         QComponentContainer * cont, QMetaObject const & type, QObject * obj)
 {
-    Meta const & meta = metas_[&type];
+    if (&type == &QObject::staticMetaObject)
+        return;
+    auto iter = metas_.find(&type);
+    if (iter == metas_.end()) {
+        compose(cont, *type.superClass(), obj);
+        return;
+    }
+    Meta const & meta = iter->second;
     for (auto i : meta.imports) {
         if (i->count_ == QImportBase::many)
             if (i->lazy_)
