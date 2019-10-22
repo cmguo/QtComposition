@@ -36,6 +36,13 @@ HEADERS += \
     qpart.h \
     qtestcomposition.h
 
+includes.files = $$PWD/*.h $$PWD/*.hpp
+win32 {
+    includes.path = $$[QT_INSTALL_HEADERS]/QtComposition
+    target.path = $$[QT_INSTALL_LIBS]
+}
+INSTALLS += includes
+
 # Default rules for deployment.
 unix {
     target.path = /usr/lib

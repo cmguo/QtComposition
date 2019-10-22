@@ -1,6 +1,12 @@
 #include "qcomponentcontainer.h"
 #include "qcomponentregistry.h"
 
+QComponentContainer & QComponentContainer::globalInstance()
+{
+    static QComponentContainer c;
+    return c;
+}
+
 QComponentContainer::QComponentContainer()
 {
     QComponentRegistry::composition();

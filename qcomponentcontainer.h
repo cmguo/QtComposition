@@ -11,6 +11,9 @@
 class QTCOMPOSITION_EXPORT QComponentContainer
 {
 public:
+    static QComponentContainer & globalInstance();
+
+public:
     QComponentContainer();
 
 public:
