@@ -36,6 +36,10 @@ HEADERS += \
     qpart.h \
     qtestcomposition.h
 
+CONFIG(debug, debug|release) {
+    win32: TARGET = $$join(TARGET,,,d)
+}
+
 includes.files = $$PWD/*.h $$PWD/*.hpp
 win32 {
     includes.path = $$[QT_INSTALL_HEADERS]/QtComposition
