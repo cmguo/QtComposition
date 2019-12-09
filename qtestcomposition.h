@@ -6,6 +6,7 @@
 #include <qlazy.h>
 
 #include <QObject>
+#include <QVector>
 
 class QTCOMPOSITION_EXPORT QTestComposition : public QObject
 {
@@ -16,7 +17,7 @@ public:
 
 public:
     Q_PROPERTY(QObject* impl MEMBER impl_)
-    Q_PROPERTY(std::vector<QLazy> impls MEMBER impls_)
+    Q_PROPERTY(QVector<QLazy> impls MEMBER impls_)
 
 signals:
 
@@ -25,7 +26,7 @@ public slots:
 
 private:
     QObject * impl_;
-    std::vector<QLazy> impls_;
+    QVector<QLazy> impls_;
 };
 
 #endif // QTESTCOMPOSITION_H

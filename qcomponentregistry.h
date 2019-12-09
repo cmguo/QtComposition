@@ -5,7 +5,7 @@
 #include "qexport.h"
 #include "qimport.h"
 
-#include <vector>
+#include <QVector>
 #include <map>
 
 class QComponentContainer;
@@ -19,7 +19,7 @@ public:
 
     static void composition();
 
-    static std::vector<QExportBase const *> get_exports(QPart const & i);
+    static QVector<QExportBase const *> get_exports(QPart const & i);
 
     static void compose(QComponentContainer * cont, QMetaObject const & type, QObject * obj);
 

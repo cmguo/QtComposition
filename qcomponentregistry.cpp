@@ -1,15 +1,13 @@
 #include "qcomponentregistry.h"
 #include "qcomponentcontainer.h"
 
-#include <vector>
-
 struct QComponentRegistry::Meta
 {
     Meta() : invalid(false){}
 
     bool invalid;
-    std::vector<QExportBase *> exports;
-    std::vector<QImportBase *> imports;
+    QVector<QExportBase *> exports;
+    QVector<QImportBase *> imports;
 };
 
 std::map<QMetaObject const *, QComponentRegistry::Meta> QComponentRegistry::metas_;
@@ -30,9 +28,9 @@ void QComponentRegistry::composition()
     if (composed == true)
         return;
     composed = true;
-    std::vector<QMetaObject const *> invalids;
+    QVector<QMetaObject const *> invalids;
     size_t count = 0;
-    for (auto m : metas_) {
+    for (auto& m : metas_) {
         for (QImportBase * i : m.second.imports) {
             i->exports = get_exports(*i);
             if (!i->valid()) {
@@ -90,7 +88,7 @@ void QComponentRegistry::compose(
             else
                 i->compose(obj, cont->get_export_value(*i));
     }
-    type.invokeMethod(obj, "onComposition");
+    compose(cont, *type.superClass(), obj);
 }
 
 QComponentRegistry::Meta & QComponentRegistry::get_meta(QMetaObject const * meta)
@@ -102,9 +100,9 @@ QComponentRegistry::Meta & QComponentRegistry::get_meta(QMetaObject const * meta
     return iter->second;
 }
 
-std::vector<QExportBase const *> QComponentRegistry::get_exports(QPart const & i)
+QVector<QExportBase const *> QComponentRegistry::get_exports(QPart const & i)
 {
-    std::vector<QExportBase const *> list;
+    QVector<QExportBase const *> list;
     for (auto m : metas_) {
         for (QExportBase * e : m.second.exports) {
             if (e->match(i) && !metas_[e->meta_].invalid) {

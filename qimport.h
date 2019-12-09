@@ -5,7 +5,7 @@
 #include "qpart.h"
 #include "qlazy.h"
 
-#include <vector>
+#include <QVector>
 
 class QExportBase;
 class QComponentRegistry;
@@ -44,18 +44,18 @@ public:
 
     void compose(QObject * obj, QObject * target) const;
 
-    void compose(QObject * obj, std::vector<QObject *> const & targets) const;
+    void compose(QObject * obj, QVector<QObject *> const & targets) const;
 
     void compose(QObject * obj, QLazy target) const;
 
-    void compose(QObject * obj, std::vector<QLazy> const & targets) const;
+    void compose(QObject * obj, QVector<QLazy> const & targets) const;
 
 private:
     friend class QComponentRegistry;
     char const * prop_;
     Import count_;
     bool lazy_;
-    std::vector<QExportBase const *> exports;
+    QVector<QExportBase const *> exports;
 };
 
 template <typename T, typename U>

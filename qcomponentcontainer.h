@@ -30,16 +30,16 @@ public:
     QObject * get_export_value(QPart const & i);
 
     template<typename T>
-    std::vector<QObject *> get_export_values(QPart::Share share = QPart::Share::any)
+    QVector<QObject *> get_export_values(QPart::Share share = QPart::Share::any)
     {
         return get_export_values(T::staticMetaObject, share);
     }
 
-    std::vector<QObject *> get_export_values(QMetaObject const & type, QPart::Share share = QPart::Share::any);
+    QVector<QObject *> get_export_values(QMetaObject const & type, QPart::Share share = QPart::Share::any);
 
-    std::vector<QObject *> get_export_values(char const * name, QPart::Share share = QPart::Share::any);
+    QVector<QObject *> get_export_values(char const * name, QPart::Share share = QPart::Share::any);
 
-    std::vector<QObject *> get_export_values(QPart const & i);
+    QVector<QObject *> get_export_values(QPart const & i);
 
     void release_value(QObject * value);
 
@@ -57,16 +57,16 @@ public:
     QLazy get_export(QPart const & i);
 
     template<typename T>
-    std::vector<QLazy> get_exports(QPart::Share share)
+    QVector<QLazy> get_exports(QPart::Share share)
     {
         return get_exports(T::staticMetaObject, share);
     }
 
-    std::vector<QLazy> get_exports(QMetaObject const & type, QPart::Share share);
+    QVector<QLazy> get_exports(QMetaObject const & type, QPart::Share share);
 
-    std::vector<QLazy> get_exports(char const * name, QPart::Share share);
+    QVector<QLazy> get_exports(char const * name, QPart::Share share);
 
-    std::vector<QLazy> get_exports(QPart const & i);
+    QVector<QLazy> get_exports(QPart const & i);
 
     QObject * get_export_value(QLazy const & lazy);
 
@@ -89,8 +89,8 @@ private:
 
 private:
     std::map<QMetaObject const *, QObject *> shared_objs_;
-    std::map<QObject *, std::vector<QObject *>> non_shared_objs_;
-    std::vector<std::vector<QObject *>> temp_non_shared_objs_;
+    std::map<QObject *, QVector<QObject *>> non_shared_objs_;
+    QVector<QVector<QObject *>> temp_non_shared_objs_;
 };
 
 #endif // QCOMPONENTCONTAINER_H

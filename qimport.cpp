@@ -27,7 +27,7 @@ void QImportBase::compose(QObject * obj, QObject * target) const
     obj->setProperty(prop_, QVariant::fromValue(target));
 }
 
-void QImportBase::compose(QObject * obj, std::vector<QObject *> const & targets) const
+void QImportBase::compose(QObject * obj, QVector<QObject *> const & targets) const
 {
     obj->setProperty(prop_, QVariant::fromValue(targets));
 }
@@ -37,7 +37,7 @@ void QImportBase::compose(QObject * obj, QLazy target) const
     obj->setProperty(prop_, QVariant::fromValue(target));
 }
 
-void QImportBase::compose(QObject * obj, std::vector<QLazy> const & targets) const
+void QImportBase::compose(QObject * obj, QVector<QLazy> const & targets) const
 {
     obj->setProperty(prop_, QVariant::fromValue(targets));
 }
