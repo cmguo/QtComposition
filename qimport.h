@@ -96,7 +96,7 @@ public:
         : QImportBase(&T::staticMetaObject, prop)
     {
         config(Type(&U::staticMetaObject), Name(name), Shared(share), Lazy(lazy), Imports(many));
-        set_many();
+        this->set_many();
     }
 
 };
