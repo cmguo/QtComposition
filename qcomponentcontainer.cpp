@@ -11,7 +11,7 @@ QComponentContainer & QComponentContainer::globalInstance()
 }
 
 template <typename T>
-static void registerConverters() {
+static bool registerConverters() {
     qRegisterMetaType<std::list<T>>();
     qRegisterMetaType<std::vector<T>>();
     qRegisterMetaType<QList<T>>();
@@ -24,13 +24,15 @@ static void registerConverters() {
     QMetaType::registerConverter<QVector<T>, QList<T>>([](QVector<T> const & f) {
         return f.toList();
     });
+    return true;
 }
 
 QComponentContainer::QComponentContainer()
 {
     QComponentRegistry::composition();
-    registerConverters<QLazy>();
-    registerConverters<QObject*>();
+    static bool ok = registerConverters<QLazy>()
+            && registerConverters<QObject*>();
+    (void) ok;
 }
 
 QObject * QComponentContainer::get_export_value(QPart const & i, QPart const & e)
