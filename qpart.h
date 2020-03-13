@@ -4,8 +4,6 @@
 #include <QMetaObject>
 #include <QMap>
 
-#include <map>
-
 class QPart
 {
 public:

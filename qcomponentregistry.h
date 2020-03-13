@@ -6,7 +6,7 @@
 #include "qimport.h"
 
 #include <QVector>
-#include <map>
+#include <QMap>
 
 class QComponentContainer;
 
@@ -28,7 +28,7 @@ private:
 
     static Meta & get_meta(QMetaObject const * type);
 
-    static std::map<QMetaObject const *, Meta> metas_;
+    static QMap<QMetaObject const *, Meta> metas_;
 };
 
 #endif // QCOMPONENTREGISTRY_H

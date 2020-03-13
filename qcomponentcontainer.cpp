@@ -1,6 +1,8 @@
 #include "qcomponentcontainer.h"
 #include "qcomponentregistry.h"
 
+#include <QMetaMethod>
+
 #include <vector>
 #include <list>
 
@@ -62,21 +64,25 @@ QObject * QComponentContainer::get_export_value(
         if (it == shared_objs_.end()) {
             o = creator(meta);
             QComponentRegistry::compose(this, meta, o);
-            shared_objs_.insert(std::make_pair(&meta, o));
-            meta.invokeMethod(o, "onComposition");
+            shared_objs_.insert(&meta, o);
+            int index = meta.indexOfMethod("onComposition()");
+            if (index >= 0)
+                meta.method(index).invoke(o);
         } else {
-            o = it->second;
+            o = *it;
         }
     } else {
         temp_non_shared_objs_.push_back(QVector<QObject *>());
         o = creator(meta);
         QComponentRegistry::compose(this, meta, o);
-        auto it = non_shared_objs_.insert(std::make_pair(o, QVector<QObject *>()));
-        it.first->second.swap(temp_non_shared_objs_.back());
+        auto it = non_shared_objs_.insert(o, QVector<QObject *>());
+        it->swap(temp_non_shared_objs_.back());
         temp_non_shared_objs_.pop_back();
         if (!temp_non_shared_objs_.empty())
             temp_non_shared_objs_.back().push_back(o);
-        meta.invokeMethod(o, "onComposition");
+        int index = meta.indexOfMethod("onComposition()");
+        if (index >= 0)
+            meta.method(index).invoke(o);
     }
     return o;
 }
@@ -125,7 +131,7 @@ void QComponentContainer::release_value(QObject *value)
     auto it = non_shared_objs_.find(value);
     if (it == non_shared_objs_.end())
         return;
-    for (auto o : it->second)
+    for (auto o : (*it))
         release_value(o);
     non_shared_objs_.erase(it);
     value->deleteLater();

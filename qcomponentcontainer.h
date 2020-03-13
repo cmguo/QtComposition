@@ -88,8 +88,8 @@ private:
     QObject * get_export_value(QMetaObject const & meta, bool share);
 
 private:
-    std::map<QMetaObject const *, QObject *> shared_objs_;
-    std::map<QObject *, QVector<QObject *>> non_shared_objs_;
+    QMap<QMetaObject const *, QObject *> shared_objs_;
+    QMap<QObject *, QVector<QObject *>> non_shared_objs_;
     QVector<QVector<QObject *>> temp_non_shared_objs_;
 };
 
