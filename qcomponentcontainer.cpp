@@ -83,14 +83,14 @@ QObject * QComponentContainer::get_export_value(
             o = *it;
         }
     } else {
-        temp_non_shared_objs_.push_back(QVector<QObject *>());
+        //temp_non_shared_objs_.push_back(QVector<QObject *>());
         o = creator(meta);
         QComponentRegistry::compose(this, meta, o);
-        auto it = non_shared_objs_.insert(o, QVector<QObject *>());
-        it->swap(temp_non_shared_objs_.back());
-        temp_non_shared_objs_.pop_back();
-        if (!temp_non_shared_objs_.empty())
-            temp_non_shared_objs_.back().push_back(o);
+        //auto it = non_shared_objs_.insert(o, QVector<QObject *>());
+        //it->swap(temp_non_shared_objs_.back());
+        //temp_non_shared_objs_.pop_back();
+        //if (!temp_non_shared_objs_.empty())
+        //    temp_non_shared_objs_.back().push_back(o);
         int index = meta.indexOfMethod("onComposition()");
         if (index >= 0)
             meta.method(index).invoke(o);
