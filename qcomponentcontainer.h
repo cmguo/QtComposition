@@ -16,6 +16,8 @@ public:
 public:
     QComponentContainer();
 
+    ~QComponentContainer();
+
 public:
     template<typename T>
     T * get_export_value(QPart::Share share = QPart::Share::any)
@@ -81,6 +83,8 @@ public:
     }
 
 private:
+    Q_DISABLE_COPY(QComponentContainer)
+
     QObject * get_export_value(QPart const & i, QPart const & e);
 
     QObject * get_export_value(QMetaObject const & meta, bool share, creator_t const & creator);

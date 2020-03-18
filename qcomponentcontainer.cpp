@@ -2,6 +2,7 @@
 #include "qcomponentregistry.h"
 
 #include <QMetaMethod>
+#include <QDebug>
 
 #include <vector>
 #include <list>
@@ -35,6 +36,16 @@ QComponentContainer::QComponentContainer()
     static bool ok = registerConverters<QLazy>()
             && registerConverters<QObject*>();
     (void) ok;
+}
+
+QComponentContainer::~QComponentContainer()
+{
+    for (QObject * so : shared_objs_)
+        delete so;
+    shared_objs_.clear();
+    for (void * nso : non_shared_objs_.keys()) {
+        qDebug() << "may leak not shared object " << nso;
+    }
 }
 
 QObject * QComponentContainer::get_export_value(QPart const & i, QPart const & e)
