@@ -77,7 +77,7 @@ public:
     template<typename ...Args>
     QObject * get_export_value(QLazy const & lazy, Args&&... args)
     {
-        return get_export_value(*lazy.part_->meta_, false, [this, args...](QMetaObject const & meta) {
+        return get_export_value(*lazy.part_->meta_, false, [args...](QMetaObject const & meta) {
             return meta.newInstance(std::move(args)...);
         });
     }
