@@ -6,6 +6,8 @@
 #include "qlazy.h"
 
 #include <QVector>
+#include <vector>
+#include <list>
 
 class QExportBase;
 class QComponentRegistry;
@@ -56,6 +58,9 @@ private:
     Import count_;
     bool lazy_;
     QVector<QExportBase const *> exports;
+
+protected:
+    bool (*registerListConverter)();
 };
 
 template <typename T, typename U>
@@ -82,6 +87,28 @@ public:
     }
 };
 
+template<typename U, typename List>
+inline bool registerImportManyConverter()
+{
+    qRegisterMetaType<List>();
+    return QMetaType::registerConverter<QVector<QObject*>, List>([](QVector<QObject*> const & f) {
+        List list;
+        for (auto l : f)
+            list.push_back(qobject_cast<U*>(l));
+        return list;
+    });
+}
+
+template<typename U>
+inline bool registerImportManyConverters()
+{
+    static bool ok = registerImportManyConverter<U, std::list<U*>>()
+        && registerImportManyConverter<U, std::vector<U*>>()
+        && registerImportManyConverter<U, QList<U*>>()
+        && registerImportManyConverter<U, QVector<U*>>();
+    return ok;
+}
+
 template <typename T, typename U>
 class QImportMany : QImportBase
 {
@@ -89,16 +116,17 @@ public:
     QImportMany(char const * prop, Share share = Share::any, bool lazy = false)
         : QImportBase(&T::staticMetaObject, prop)
     {
+        registerListConverter = &registerImportManyConverters<U>;
         config(Type(&U::staticMetaObject), Shared(share), Lazy(lazy), Imports(many));
     }
 
     QImportMany(char const * prop, char const * name, Share share = Share::any, bool lazy = false)
         : QImportBase(&T::staticMetaObject, prop)
     {
+        registerListConverter = &registerImportManyConverters<U>;
         config(Type(&U::staticMetaObject), Name(name), Shared(share), Lazy(lazy), Imports(many));
         this->set_many();
     }
-
 };
 
 template <typename T, typename U>

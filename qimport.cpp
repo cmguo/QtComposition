@@ -9,6 +9,7 @@ QImportBase::QImportBase(QMetaObject const * meta, char const * prop)
     , prop_(prop)
     , count_(Import::exactly)
     , lazy_(false)
+    , registerListConverter(nullptr)
 {
 }
 
@@ -29,6 +30,8 @@ void QImportBase::compose(QObject * obj, QObject * target) const
 
 void QImportBase::compose(QObject * obj, QVector<QObject *> const & targets) const
 {
+    if (registerListConverter)
+        registerListConverter();
     obj->setProperty(prop_, QVariant::fromValue(targets));
 }
 
