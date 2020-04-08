@@ -139,12 +139,15 @@ QVector<QObject *> QComponentContainer::get_export_values(char const * name, QPa
 
 void QComponentContainer::release_value(QObject *value)
 {
-    auto it = non_shared_objs_.find(value);
-    if (it == non_shared_objs_.end())
+    auto it = shared_objs_.find(value->metaObject());
+    if (it != shared_objs_.end() && *it == value)
         return;
-    for (auto o : (*it))
-        release_value(o);
-    non_shared_objs_.erase(it);
+    //auto it = non_shared_objs_.find(value);
+    //if (it == non_shared_objs_.end())
+    //    return;
+    //for (auto o : (*it))
+    //    release_value(o);
+    //non_shared_objs_.erase(it);
     value->deleteLater();
 }
 
