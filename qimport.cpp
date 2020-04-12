@@ -9,7 +9,7 @@ QImportBase::QImportBase(QMetaObject const * meta, char const * prop)
     , prop_(prop)
     , count_(Import::exactly)
     , lazy_(false)
-    , registerListConverter(nullptr)
+    , typeRegister_(nullptr)
 {
 }
 
@@ -25,22 +25,28 @@ bool QImportBase::valid() const
 
 void QImportBase::compose(QObject * obj, QObject * target) const
 {
+    if (typeRegister_)
+        typeRegister_();
     obj->setProperty(prop_, QVariant::fromValue(target));
 }
 
 void QImportBase::compose(QObject * obj, QVector<QObject *> const & targets) const
 {
-    if (registerListConverter)
-        registerListConverter();
+    if (typeRegister_)
+        typeRegister_();
     obj->setProperty(prop_, QVariant::fromValue(targets));
 }
 
 void QImportBase::compose(QObject * obj, QLazy target) const
 {
+    if (typeRegister_)
+        typeRegister_();
     obj->setProperty(prop_, QVariant::fromValue(target));
 }
 
 void QImportBase::compose(QObject * obj, QVector<QLazy> const & targets) const
 {
+    if (typeRegister_)
+        typeRegister_();
     obj->setProperty(prop_, QVariant::fromValue(targets));
 }

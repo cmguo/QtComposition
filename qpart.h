@@ -14,13 +14,6 @@ public:
         nonshared
     };
 
-    enum Import
-    {
-        optional,
-        exactly,
-        many
-    };
-
 public:
     QPart(QMetaObject const * meta, QMetaObject const * type, char const * name, Share share = Share::any);
 

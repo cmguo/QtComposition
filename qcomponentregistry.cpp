@@ -1,6 +1,8 @@
 #include "qcomponentregistry.h"
 #include "qcomponentcontainer.h"
 
+#include <QDebug>
+
 struct QComponentRegistry::Meta
 {
     Meta() : invalid(false){}
@@ -34,6 +36,7 @@ void QComponentRegistry::composition()
         for (QImportBase * i : (*m).second.imports) {
             i->exports = get_exports(*i);
             if (!i->valid()) {
+                qWarning() << "QComponentRegistry:" << (*m).first->className() << "!import" << i->prop_;
                 (*m).second.invalid = true;
                 invalids.push_back((*m).first);
                 break;
@@ -46,6 +49,7 @@ void QComponentRegistry::composition()
             if ((*m).second.invalid)
                 continue;
             if ((*m).first->inherits(meta)) {
+                qWarning() << "QComponentRegistry:" << (*m).first->className() << "!base" << meta->className();
                 (*m).second.invalid = true;
                 invalids.push_back((*m).first);
                 continue;
@@ -56,6 +60,7 @@ void QComponentRegistry::composition()
                                            [meta](auto e) { return e->meta_ == meta;}),
                             i->exports.end());
                 if (!i->valid()) {
+                    qWarning() << "QComponentRegistry:" << (*m).first->className() << "!import" << i->prop_;
                     (*m).second.invalid = true;
                     invalids.push_back((*m).first);
                     break;
