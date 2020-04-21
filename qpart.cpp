@@ -24,7 +24,7 @@ QPart::QPart(QMetaObject const * meta, bool isExport)
 }
 
 QPart::QPart(const QPart &o, const QMetaObject *newType)
-    : meta_(o.type_)
+    : meta_(o.meta_)
     , type_(newType)
     , name_(nullptr)
     , share_(o.share_)
