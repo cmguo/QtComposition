@@ -9,3 +9,8 @@ QExportBase::QExportBase(QMetaObject const * meta)
 {
 }
 
+QExportBase::QExportBase(const QExportBase &o, const QMetaObject *newType)
+    : QPart(o, newType)
+{
+}
+

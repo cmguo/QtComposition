@@ -13,6 +13,8 @@ class QTCOMPOSITION_EXPORT QExportBase : public QPart
 public:
     QExportBase(QMetaObject const * meta);
 
+    QExportBase(QExportBase const & o, QMetaObject const * newType);
+
 private:
     friend class QComponentRegistry;
     friend class QComponentContainer;

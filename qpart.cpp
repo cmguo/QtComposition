@@ -23,6 +23,15 @@ QPart::QPart(QMetaObject const * meta, bool isExport)
         QComponentRegistry::add_import(static_cast<QImportBase *>(this));
 }
 
+QPart::QPart(const QPart &o, const QMetaObject *newType)
+    : meta_(o.type_)
+    , type_(newType)
+    , name_(nullptr)
+    , share_(o.share_)
+    , attrs_(o.attrs_)
+{
+}
+
 bool QPart::match(const QPart &i) const
 {
     return (type_ == i.type_ || i.type_ == nullptr) && strcmp(name(), i.name()) == 0

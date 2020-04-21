@@ -69,6 +69,8 @@ public:
 protected:
     QPart(QMetaObject const * meta, bool isExport);
 
+    QPart(QPart const & o, QMetaObject const * newType);
+
     template <typename Arg, typename ...Args>
     void config(Arg const & arg, Args const & ...args)
     {
@@ -87,9 +89,24 @@ protected:
     bool share(QPart const & o) const;
 
 public:
+    QMetaObject const * meta() const
+    {
+        return meta_;
+    }
+
+    QMetaObject const * type() const
+    {
+        return type_;
+    }
+
     char const * name() const
     {
         return name_ == nullptr ? type_->className() : name_;
+    }
+
+    Share share() const
+    {
+        return share_;
     }
 
     char const * attr(char const * key, char const * defalutValue = nullptr) const

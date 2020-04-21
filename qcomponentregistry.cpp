@@ -2,6 +2,7 @@
 #include "qcomponentcontainer.h"
 
 #include <QDebug>
+#include <QMetaClassInfo>
 
 struct QComponentRegistry::Meta
 {
@@ -30,6 +31,22 @@ void QComponentRegistry::composition()
     if (composed == true)
         return;
     composed = true;
+    // InheritedExport
+    for (auto m = metas_.keyValueBegin(); m != metas_.keyValueEnd(); ++m) {
+        QVector<QExportBase *> exports = (*m).second.exports;
+        for (QExportBase * i : exports) {
+            QMetaObject const * type = (i->type_ ? i->type_ : i->meta_)->superClass();
+            while (type && type != &QObject::staticMetaObject) {
+                int index = type->indexOfClassInfo("InheritedExport");
+                if (index >= 0) {
+                    if (QByteArray("true") == type->classInfo(index).value()) {
+                        (*m).second.exports.push_back(new QExportBase(*i, type));
+                    }
+                }
+                type = type->superClass();
+            }
+        }
+    }
     QVector<QMetaObject const *> invalids;
     int count = 0;
     for (auto m = metas_.keyValueBegin(); m != metas_.keyValueEnd(); ++m) {
