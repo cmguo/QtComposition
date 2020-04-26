@@ -74,6 +74,10 @@ QObject * QComponentContainer::get_export_value(
         auto it = shared_objs_.find(&meta);
         if (it == shared_objs_.end()) {
             o = creator(meta);
+            if (o == nullptr) {
+                qWarning() << "QComponentContainer failed create object of " << meta.className();
+                return nullptr;
+            }
             QComponentRegistry::compose(this, meta, o);
             shared_objs_.insert(&meta, o);
             int index = meta.indexOfMethod("onComposition()");
@@ -85,6 +89,10 @@ QObject * QComponentContainer::get_export_value(
     } else {
         //temp_non_shared_objs_.push_back(QVector<QObject *>());
         o = creator(meta);
+        if (o == nullptr) {
+            qWarning() << "QComponentContainer failed create object of " << meta.className();
+            return nullptr;
+        }
         QComponentRegistry::compose(this, meta, o);
         //auto it = non_shared_objs_.insert(o, QVector<QObject *>());
         //it->swap(temp_non_shared_objs_.back());
