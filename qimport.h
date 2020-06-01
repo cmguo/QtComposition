@@ -105,18 +105,6 @@ protected:
         TypeMT() : Type(AUTO_META) { }
     };
 
-    class Lazy
-    {
-    public:
-        Lazy(bool lazy) : lazy_(lazy) {}
-        void apply(QPart & p) const
-        {
-            static_cast<QImportBase &>(p).lazy_ = lazy_;
-        }
-    private:
-        bool lazy_;
-    };
-
     class Imports
     {
     public:
@@ -155,16 +143,16 @@ template <typename T, typename U = void*>
 class QImport : QImportBase
 {
 public:
-    QImport(char const * prop, Share share = Share::any, bool lazy = false)
+    QImport(char const * prop, Share share = Share::any)
         : QImportBase(&T::staticMetaObject, prop)
     {
-        config(TypeT<U>(), Shared(share), Lazy(lazy));
+        config(TypeT<U>(), Shared(share));
     }
 
-    QImport(char const * prop, char const * name, Share share = Share::any, bool lazy = false)
+    QImport(char const * prop, char const * name, Share share = Share::any)
         : QImportBase(&T::staticMetaObject, prop)
     {
-        config(TypeT<U>(), Name(name), Shared(share), Lazy(lazy));
+        config(TypeT<U>(), Name(name), Shared(share));
     }
 
     template <typename ...Args>
@@ -179,16 +167,16 @@ template <typename T, typename U = void*>
 class QImportMany : QImportBase
 {
 public:
-    QImportMany(char const * prop, Share share = Share::any, bool lazy = false)
+    QImportMany(char const * prop, Share share = Share::any)
         : QImportBase(&T::staticMetaObject, prop)
     {
-        config(TypeMT<U>(), Shared(share), Lazy(lazy), Imports(many));
+        config(TypeMT<U>(), Shared(share), Imports(many));
     }
 
-    QImportMany(char const * prop, char const * name, Share share = Share::any, bool lazy = false)
+    QImportMany(char const * prop, char const * name, Share share = Share::any)
         : QImportBase(&T::staticMetaObject, prop)
     {
-        config(TypeMT<U>(), Name(name), Shared(share), Lazy(lazy), Imports(many));
+        config(TypeMT<U>(), Name(name), Shared(share), Imports(many));
     }
 };
 
@@ -196,16 +184,16 @@ template <typename T, typename U = void*>
 class QImportOptional : QImportBase
 {
 public:
-    QImportOptional(char const * prop, Share share = Share::any, bool lazy = false)
+    QImportOptional(char const * prop, Share share = Share::any)
         : QImportBase(&T::staticMetaObject, prop)
     {
-        config(TypeT<U>(), Shared(share), Lazy(lazy), Imports(optional));
+        config(TypeT<U>(), Shared(share), Imports(optional));
     }
 
-    QImportOptional(char const * prop, char const * name, Share share = Share::any, bool lazy = false)
+    QImportOptional(char const * prop, char const * name, Share share = Share::any)
         : QImportBase(&T::staticMetaObject, prop)
     {
-        config(TypeT<U>(), Name(name), Shared(share), Lazy(lazy), Imports(optional));
+        config(TypeT<U>(), Name(name), Shared(share), Imports(optional));
     }
 
 };

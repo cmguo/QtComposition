@@ -4,7 +4,7 @@
 #include "qimport.h"
 
 static QImport<QTestComposition, QObject> import_qtest_impl("impl");
-static QImportMany<QTestComposition, QObject> import_qtest_impls("impls", QPart::nonshared, true);
+static QImportMany<QTestComposition, QObject> import_qtest_impls("impls", QPart::nonshared);
 static QExport<QTestComposition> export_qtest;
 static QExport<QObject> export_qobject(QPart::shared);
 
