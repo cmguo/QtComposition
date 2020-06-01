@@ -22,7 +22,7 @@ public:
         many
     };
 
-public:
+protected:
     QImportBase(QMetaObject const * meta, char const * prop);
 
     template<typename T>
@@ -48,6 +48,13 @@ public:
     {
     public:
         TypeT() : Type(nullptr) { }
+    };
+
+    template<>
+    class TypeT<void*> : public Type
+    {
+    public:
+        TypeT() : Type(AUTO_META) { }
     };
 
     template<typename U, typename List>
@@ -84,6 +91,20 @@ public:
         }
     };
 
+    template<>
+    class TypeMT<void> : public Type
+    {
+    public:
+        TypeMT() : Type(nullptr) { }
+    };
+
+    template<>
+    class TypeMT<void*> : public Type
+    {
+    public:
+        TypeMT() : Type(AUTO_META) { }
+    };
+
     class Lazy
     {
     public:
@@ -109,6 +130,8 @@ public:
     };
 
 public:
+    bool checkType();
+
     bool valid() const;
 
     void compose(QObject * obj, QObject * target) const;
@@ -128,7 +151,7 @@ private:
     void (*typeRegister_)();
 };
 
-template <typename T, typename U>
+template <typename T, typename U = void*>
 class QImport : QImportBase
 {
 public:
@@ -152,7 +175,7 @@ public:
     }
 };
 
-template <typename T, typename U>
+template <typename T, typename U = void*>
 class QImportMany : QImportBase
 {
 public:
@@ -169,7 +192,7 @@ public:
     }
 };
 
-template <typename T, typename U>
+template <typename T, typename U = void*>
 class QImportOptional : QImportBase
 {
 public:

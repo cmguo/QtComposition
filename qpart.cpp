@@ -3,6 +3,8 @@
 
 #include <string.h>
 
+QMetaObject const * const QPart::AUTO_META = reinterpret_cast<QMetaObject*>(1);
+
 QPart::QPart(QMetaObject const * meta, QMetaObject const * type, char const * name, Share share)
     : meta_(meta)
     , type_(type)

@@ -18,6 +18,7 @@ static bool registerConverters() {
     qRegisterMetaType<std::list<T>>();
     qRegisterMetaType<std::vector<T>>();
     qRegisterMetaType<QList<T>>();
+    qRegisterMetaType<QVector<T>>();
     QMetaType::registerConverter<QVector<T>, std::list<T>>([](QVector<T> const & f) {
         return f.toList().toStdList();
     });
@@ -32,10 +33,10 @@ static bool registerConverters() {
 
 QComponentContainer::QComponentContainer()
 {
-    QComponentRegistry::composition();
     static bool ok = registerConverters<QLazy>()
             && registerConverters<QObject*>();
     (void) ok;
+    QComponentRegistry::composition();
 }
 
 QComponentContainer::~QComponentContainer()
@@ -108,7 +109,7 @@ QObject * QComponentContainer::getExportValue(
 
 QObject * QComponentContainer::getExportValue(QPart const & i)
 {
-    auto exports = QComponentRegistry::getExports(i);
+    auto exports = QComponentRegistry::collectExports(i);
     if (exports.empty())
         return nullptr;
     if (exports.size() > 1)
@@ -128,7 +129,7 @@ QObject * QComponentContainer::getExportValue(char const * name, QPart::Share sh
 
 QVector<QObject *> QComponentContainer::getExportValues(QPart const & i)
 {
-    auto exports = QComponentRegistry::getExports(i);
+    auto exports = QComponentRegistry::collectExports(i);
     QVector<QObject *> list;
     for (auto e : exports)
         list.push_back(getExportValue(i, *e));
@@ -166,6 +167,17 @@ void QComponentContainer::releaseValue(QObject *value)
 
 QLazy QComponentContainer::getExport(QPart const & i)
 {
+    auto exports = QComponentRegistry::collectExports(i);
+    if (exports.empty())
+        return QLazy();
+    if (exports.size() > 1)
+        return QLazy();
+    QExportBase const * e = exports.front();
+    return QLazy(this, e, e->share(i));
+}
+
+QLazy QComponentContainer::getExport(const QImportBase &i)
+{
     auto exports = QComponentRegistry::getExports(i);
     if (exports.empty())
         return QLazy();
@@ -186,6 +198,15 @@ QLazy QComponentContainer::getExport(char const * name, QPart::Share share)
 }
 
 QVector<QLazy> QComponentContainer::getExports(QPart const & i)
+{
+    auto exports = QComponentRegistry::collectExports(i);
+    QVector<QLazy> list;
+    for (auto e : exports)
+        list.push_back(QLazy(this, e, e->share(i)));
+    return list;
+}
+
+QVector<QLazy> QComponentContainer::getExports(const QImportBase &i)
 {
     auto exports = QComponentRegistry::getExports(i);
     QVector<QLazy> list;

@@ -13,6 +13,45 @@ QImportBase::QImportBase(QMetaObject const * meta, char const * prop)
 {
 }
 
+bool QImportBase::checkType()
+{
+    int i = meta_->indexOfProperty(prop_);
+    if (i < 0)
+        return false;
+    QMetaProperty p = meta_->property(i);
+    QByteArray tm = p.typeName();
+    int t = p.userType();
+    if (tm.endsWith('>') && (tm.startsWith("QVector<")
+            || tm.startsWith("QList<")
+            || tm.startsWith("std::vector<")
+            || tm.startsWith("std::list<"))) {
+        if (count_ != many)
+            return false;
+        tm = tm.mid(tm.indexOf('<') + 1);
+        tm = tm.left(tm.length() - 1);
+        t = QMetaType::type(tm);
+    }
+    if (t == 0)
+        return true; // we can't check, maybe explicit register
+    if (t == qMetaTypeId<QLazy>()) {
+        lazy_ = true;
+        typeRegister_ = nullptr;
+        return true;
+    }
+    QMetaType mt(t);
+    if (!mt.isValid())
+        return false;
+    QMetaObject const * pm = mt.metaObject();
+    if (pm == nullptr || (pm != &QObject::staticMetaObject
+                          && !pm->inherits(&QObject::staticMetaObject)))
+        return false;
+    if (type_ == AUTO_META)
+        type_ = pm;
+    else if (type_ && !type_->inherits(pm))
+        return false;
+    return true;
+}
+
 bool QImportBase::valid() const
 {
     if (count_ == Import::exactly)

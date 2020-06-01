@@ -10,7 +10,7 @@ class QComponentContainer;
 
 class QTCOMPOSITION_EXPORT QExportBase : public QPart
 {
-public:
+protected:
     QExportBase(QMetaObject const * meta);
 
     QExportBase(QExportBase const & o, QMetaObject const * newType);

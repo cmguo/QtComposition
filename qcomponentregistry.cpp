@@ -6,9 +6,10 @@
 
 struct QComponentRegistry::Meta
 {
-    Meta() : invalid(false){}
+    Meta() : state(Unknown){}
 
-    bool invalid;
+    enum State { Unknown, Valid, Invalid };
+    State state;
     QVector<QExportBase *> exports;
     QVector<QImportBase *> imports;
 };
@@ -50,11 +51,18 @@ void QComponentRegistry::composition()
     QVector<QMetaObject const *> invalids;
     int count = 0;
     for (auto m = metas_.keyValueBegin(); m != metas_.keyValueEnd(); ++m) {
+        (*m).second.state = Meta::Valid;
         for (QImportBase * i : (*m).second.imports) {
-            i->exports = getExports(*i);
+            if (!i->checkType()) {
+                qWarning() << "QComponentRegistry:" << (*m).first->className() << "!import" << i->prop_;
+                (*m).second.state = Meta::Invalid;
+                invalids.push_back((*m).first);
+                break;
+            }
+            i->exports = collectExports(*i);
             if (!i->valid()) {
                 qWarning() << "QComponentRegistry:" << (*m).first->className() << "!import" << i->prop_;
-                (*m).second.invalid = true;
+                (*m).second.state = Meta::Invalid;
                 invalids.push_back((*m).first);
                 break;
             }
@@ -63,11 +71,11 @@ void QComponentRegistry::composition()
     while (count < invalids.size()) {
         QMetaObject const * meta = invalids[count++];
         for (auto m = metas_.keyValueBegin(); m != metas_.keyValueEnd(); ++m) {
-            if ((*m).second.invalid)
+            if ((*m).second.state == Meta::Invalid)
                 continue;
             if ((*m).first->inherits(meta)) {
                 qWarning() << "QComponentRegistry:" << (*m).first->className() << "!base" << meta->className();
-                (*m).second.invalid = true;
+                (*m).second.state = Meta::Invalid;
                 invalids.push_back((*m).first);
                 continue;
             }
@@ -78,7 +86,7 @@ void QComponentRegistry::composition()
                             i->exports.end());
                 if (!i->valid()) {
                     qWarning() << "QComponentRegistry:" << (*m).first->className() << "!import" << i->prop_;
-                    (*m).second.invalid = true;
+                    (*m).second.state = Meta::Invalid;
                     invalids.push_back((*m).first);
                     break;
                 }
@@ -122,16 +130,23 @@ QComponentRegistry::Meta & QComponentRegistry::getMeta(QMetaObject const * meta)
     return *iter;
 }
 
-QVector<QExportBase const *> QComponentRegistry::getExports(QPart const & i)
+QVector<QExportBase const *> QComponentRegistry::collectExports(QPart const & i)
 {
     QVector<QExportBase const *> list;
     for (auto & m : metas_) {
+        if (m.state == Meta::Invalid)
+            continue;
         for (QExportBase * e : m.exports) {
-            if (e->match(i) && !metas_[e->meta_].invalid) {
+            if (e->match(i)) {
                 list.push_back(e);
                 break;
             }
         }
     }
     return list;
+}
+
+QVector<const QExportBase *> QComponentRegistry::getExports(const QImportBase &i)
+{
+    return i.exports;
 }

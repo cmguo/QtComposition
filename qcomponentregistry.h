@@ -19,7 +19,9 @@ public:
 
     static void composition();
 
-    static QVector<QExportBase const *> getExports(QPart const & i);
+    static QVector<QExportBase const *> collectExports(QPart const & i);
+
+    static QVector<QExportBase const *> getExports(QImportBase const & i);
 
     static void compose(QComponentContainer * cont, QMetaObject const & type, QObject * obj);
 

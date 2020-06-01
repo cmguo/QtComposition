@@ -71,6 +71,8 @@ protected:
 
     QPart(QPart const & o, QMetaObject const * newType);
 
+    static QMetaObject const * const AUTO_META;
+
     template <typename Arg, typename ...Args>
     void config(Arg const & arg, Args const & ...args)
     {

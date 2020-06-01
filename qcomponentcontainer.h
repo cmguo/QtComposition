@@ -60,6 +60,8 @@ public:
 
     QLazy getExport(QPart const & i);
 
+    QLazy getExport(QImportBase const & i);
+
     template<typename T>
     QVector<QLazy> getExports(QPart::Share share)
     {
@@ -71,6 +73,8 @@ public:
     QVector<QLazy> getExports(char const * name, QPart::Share share);
 
     QVector<QLazy> getExports(QPart const & i);
+
+    QVector<QLazy> getExports(QImportBase const & i);
 
     QObject * getExportValue(QLazy const & lazy);
 
