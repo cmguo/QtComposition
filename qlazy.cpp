@@ -20,6 +20,6 @@ QLazy::QLazy(QComponentContainer * cont, QPart const * part, bool share)
 QObject * QLazy::get_()
 {
     if (obj_ == nullptr && cont_ != nullptr)
-        obj_ = cont_->get_export_value(*this);
+        obj_ = cont_->getExportValue(*this);
     return obj_;
 }

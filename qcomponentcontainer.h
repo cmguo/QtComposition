@@ -20,64 +20,66 @@ public:
 
 public:
     template<typename T>
-    T * get_export_value(QPart::Share share = QPart::Share::any)
+    T * getExportValue(QPart::Share share = QPart::Share::any)
     {
-        return qobject_cast<T *>(get_export_value(T::staticMetaObject, share));
+        return qobject_cast<T *>(getExportValue(T::staticMetaObject, share));
     }
 
-    QObject * get_export_value(QMetaObject const & type, QPart::Share share = QPart::Share::any);
+    QObject * getExportValue(QMetaObject const & type, QPart::Share share = QPart::Share::any);
 
-    QObject * get_export_value(char const * name, QPart::Share share = QPart::Share::any);
+    QObject * getExportValue(char const * name, QPart::Share share = QPart::Share::any);
 
-    QObject * get_export_value(QPart const & i);
+    QObject * getExportValue(QPart const & i);
 
     template<typename T>
-    QVector<QObject *> get_export_values(QPart::Share share = QPart::Share::any)
+    QVector<QObject *> getExportValues(QPart::Share share = QPart::Share::any)
     {
-        return get_export_values(T::staticMetaObject, share);
+        return getExportValues(T::staticMetaObject, share);
     }
 
-    QVector<QObject *> get_export_values(QMetaObject const & type, QPart::Share share = QPart::Share::any);
+    QVector<QObject *> getExportValues(QMetaObject const & type, QPart::Share share = QPart::Share::any);
 
-    QVector<QObject *> get_export_values(char const * name, QPart::Share share = QPart::Share::any);
+    QVector<QObject *> getExportValues(char const * name, QPart::Share share = QPart::Share::any);
 
-    QVector<QObject *> get_export_values(QPart const & i);
+    QVector<QObject *> getExportValues(QPart const & i);
 
-    void release_value(QObject * value);
+    void composeValue(QObject * value);
+
+    void releaseValue(QObject * value);
 
 public:
     template<typename T>
-    QLazy get_export(QPart::Share share)
+    QLazy getExport(QPart::Share share)
     {
-        return get_export(T::staticMetaObject, share);
+        return getExport(T::staticMetaObject, share);
     }
 
-    QLazy get_export(QMetaObject const & type, QPart::Share share);
+    QLazy getExport(QMetaObject const & type, QPart::Share share);
 
-    QLazy get_export(char const * name, QPart::Share share);
+    QLazy getExport(char const * name, QPart::Share share);
 
-    QLazy get_export(QPart const & i);
+    QLazy getExport(QPart const & i);
 
     template<typename T>
-    QVector<QLazy> get_exports(QPart::Share share)
+    QVector<QLazy> getExports(QPart::Share share)
     {
-        return get_exports(T::staticMetaObject, share);
+        return getExports(T::staticMetaObject, share);
     }
 
-    QVector<QLazy> get_exports(QMetaObject const & type, QPart::Share share);
+    QVector<QLazy> getExports(QMetaObject const & type, QPart::Share share);
 
-    QVector<QLazy> get_exports(char const * name, QPart::Share share);
+    QVector<QLazy> getExports(char const * name, QPart::Share share);
 
-    QVector<QLazy> get_exports(QPart const & i);
+    QVector<QLazy> getExports(QPart const & i);
 
-    QObject * get_export_value(QLazy const & lazy);
+    QObject * getExportValue(QLazy const & lazy);
 
     typedef std::function<QObject *(QMetaObject const &)> creator_t;
 
     template<typename ...Args>
-    QObject * get_export_value(QLazy const & lazy, Args&&... args)
+    QObject * getExportValue(QLazy const & lazy, Args&&... args)
     {
-        return get_export_value(*lazy.part_->meta_, false, [args...](QMetaObject const & meta) {
+        return getExportValue(*lazy.part_->meta_, false, [args...](QMetaObject const & meta) {
             return meta.newInstance(std::move(args)...);
         });
     }
@@ -85,16 +87,16 @@ public:
 private:
     Q_DISABLE_COPY(QComponentContainer)
 
-    QObject * get_export_value(QPart const & i, QPart const & e);
+    QObject * getExportValue(QPart const & i, QPart const & e);
 
-    QObject * get_export_value(QMetaObject const & meta, bool share, creator_t const & creator);
+    QObject * getExportValue(QMetaObject const & meta, bool share, creator_t const & creator);
 
-    QObject * get_export_value(QMetaObject const & meta, bool share);
+    QObject * getExportValue(QMetaObject const & meta, bool share);
 
 private:
-    QMap<QMetaObject const *, QObject *> shared_objs_;
-    QMap<QObject *, QVector<QObject *>> non_shared_objs_;
-    QVector<QVector<QObject *>> temp_non_shared_objs_;
+    QMap<QMetaObject const *, QObject *> sharedObjs_;
+    QMap<QObject *, QVector<QObject *>> nonSharedObjs_;
+    QVector<QVector<QObject *>> tempNonSharedObjs_;
 };
 
 #endif // QCOMPONENTCONTAINER_H

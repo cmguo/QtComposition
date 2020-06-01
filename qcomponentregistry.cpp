@@ -15,14 +15,14 @@ struct QComponentRegistry::Meta
 
 QMap<QMetaObject const *, QComponentRegistry::Meta> QComponentRegistry::metas_;
 
-void QComponentRegistry::add_export(QExportBase * e)
+void QComponentRegistry::addExport(QExportBase * e)
 {
-    get_meta(e->meta_).exports.push_back(e);
+    getMeta(e->meta_).exports.push_back(e);
 }
 
-void QComponentRegistry::add_import(QImportBase * i)
+void QComponentRegistry::addImport(QImportBase * i)
 {
-    get_meta(i->meta_).imports.push_back(i);
+    getMeta(i->meta_).imports.push_back(i);
 }
 
 void QComponentRegistry::composition()
@@ -51,7 +51,7 @@ void QComponentRegistry::composition()
     int count = 0;
     for (auto m = metas_.keyValueBegin(); m != metas_.keyValueEnd(); ++m) {
         for (QImportBase * i : (*m).second.imports) {
-            i->exports = get_exports(*i);
+            i->exports = getExports(*i);
             if (!i->valid()) {
                 qWarning() << "QComponentRegistry:" << (*m).first->className() << "!import" << i->prop_;
                 (*m).second.invalid = true;
@@ -101,19 +101,19 @@ void QComponentRegistry::compose(
     for (auto i : meta.imports) {
         if (i->count_ == QImportBase::many)
             if (i->lazy_)
-                i->compose(obj, cont->get_exports(*i));
+                i->compose(obj, cont->getExports(*i));
             else
-                i->compose(obj, cont->get_export_values(*i));
+                i->compose(obj, cont->getExportValues(*i));
         else
             if (i->lazy_)
-                i->compose(obj, cont->get_export(*i));
+                i->compose(obj, cont->getExport(*i));
             else
-                i->compose(obj, cont->get_export_value(*i));
+                i->compose(obj, cont->getExportValue(*i));
     }
     compose(cont, *type.superClass(), obj);
 }
 
-QComponentRegistry::Meta & QComponentRegistry::get_meta(QMetaObject const * meta)
+QComponentRegistry::Meta & QComponentRegistry::getMeta(QMetaObject const * meta)
 {
     auto iter = metas_.find(meta);
     if (iter == metas_.end()) {
@@ -122,7 +122,7 @@ QComponentRegistry::Meta & QComponentRegistry::get_meta(QMetaObject const * meta
     return *iter;
 }
 
-QVector<QExportBase const *> QComponentRegistry::get_exports(QPart const & i)
+QVector<QExportBase const *> QComponentRegistry::getExports(QPart const & i)
 {
     QVector<QExportBase const *> list;
     for (auto & m : metas_) {

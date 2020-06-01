@@ -18,9 +18,9 @@ QPart::QPart(QMetaObject const * meta, bool isExport)
     , share_(any)
 {
     if (isExport)
-        QComponentRegistry::add_export(static_cast<QExportBase *>(this));
+        QComponentRegistry::addExport(static_cast<QExportBase *>(this));
     else
-        QComponentRegistry::add_import(static_cast<QImportBase *>(this));
+        QComponentRegistry::addImport(static_cast<QImportBase *>(this));
 }
 
 QPart::QPart(const QPart &o, const QMetaObject *newType)

@@ -43,6 +43,13 @@ public:
         }
     };
 
+    template<>
+    class TypeT<void> : public Type
+    {
+    public:
+        TypeT() : Type(nullptr) { }
+    };
+
     template<typename U, typename List>
     inline static bool registerImportManyConverter()
     {

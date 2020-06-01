@@ -13,20 +13,20 @@ class QComponentContainer;
 class QComponentRegistry
 {
 public:
-    static void add_export(QExportBase * e);
+    static void addExport(QExportBase * e);
 
-    static void add_import(QImportBase * e);
+    static void addImport(QImportBase * e);
 
     static void composition();
 
-    static QVector<QExportBase const *> get_exports(QPart const & i);
+    static QVector<QExportBase const *> getExports(QPart const & i);
 
     static void compose(QComponentContainer * cont, QMetaObject const & type, QObject * obj);
 
 private:
     struct Meta;
 
-    static Meta & get_meta(QMetaObject const * type);
+    static Meta & getMeta(QMetaObject const * type);
 
     static QMap<QMetaObject const *, Meta> metas_;
 };

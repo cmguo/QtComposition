@@ -40,46 +40,46 @@ QComponentContainer::QComponentContainer()
 
 QComponentContainer::~QComponentContainer()
 {
-    for (QObject * so : shared_objs_)
+    for (QObject * so : sharedObjs_)
         delete so;
-    shared_objs_.clear();
-    for (void * nso : non_shared_objs_.keys()) {
+    sharedObjs_.clear();
+    for (void * nso : nonSharedObjs_.keys()) {
         qDebug() << "may leak not shared object " << nso;
     }
 }
 
-QObject * QComponentContainer::get_export_value(QPart const & i, QPart const & e)
+QObject * QComponentContainer::getExportValue(QPart const & i, QPart const & e)
 {
-    return get_export_value(*e.meta_, e.share(i));
+    return getExportValue(*e.meta_, e.share(i));
 }
 
-QObject * QComponentContainer::get_export_value(QLazy const & lazy)
+QObject * QComponentContainer::getExportValue(QLazy const & lazy)
 {
-    return get_export_value(*lazy.part_->meta_, lazy.share_);
+    return getExportValue(*lazy.part_->meta_, lazy.share_);
 }
 
-QObject * QComponentContainer::get_export_value(QMetaObject const & meta, bool share)
+QObject * QComponentContainer::getExportValue(QMetaObject const & meta, bool share)
 {
-    return get_export_value(meta, share, [](auto meta) {
+    return getExportValue(meta, share, [](auto meta) {
         return meta.newInstance();
     });
 }
 
-QObject * QComponentContainer::get_export_value(
+QObject * QComponentContainer::getExportValue(
         QMetaObject const & meta, bool share,
         std::function<QObject *(QMetaObject const &)> const & creator)
 {
     QObject * o = nullptr;
     if (share) {
-        auto it = shared_objs_.find(&meta);
-        if (it == shared_objs_.end()) {
+        auto it = sharedObjs_.find(&meta);
+        if (it == sharedObjs_.end()) {
             o = creator(meta);
             if (o == nullptr) {
                 qWarning() << "QComponentContainer failed create object of " << meta.className();
                 return nullptr;
             }
             QComponentRegistry::compose(this, meta, o);
-            shared_objs_.insert(&meta, o);
+            sharedObjs_.insert(&meta, o);
             int index = meta.indexOfMethod("onComposition()");
             if (index >= 0)
                 meta.method(index).invoke(o);
@@ -106,49 +106,54 @@ QObject * QComponentContainer::get_export_value(
     return o;
 }
 
-QObject * QComponentContainer::get_export_value(QPart const & i)
+QObject * QComponentContainer::getExportValue(QPart const & i)
 {
-    auto exports = QComponentRegistry::get_exports(i);
+    auto exports = QComponentRegistry::getExports(i);
     if (exports.empty())
         return nullptr;
     if (exports.size() > 1)
         return nullptr;
-    return get_export_value(i, *exports.front());
+    return getExportValue(i, *exports.front());
 }
 
-QObject * QComponentContainer::get_export_value(QMetaObject const & meta, QPart::Share share)
+QObject * QComponentContainer::getExportValue(QMetaObject const & meta, QPart::Share share)
 {
-    return get_export_value(QPart(&meta, &meta, meta.className(), share));
+    return getExportValue(QPart(&meta, &meta, meta.className(), share));
 }
 
-QObject * QComponentContainer::get_export_value(char const * name, QPart::Share share)
+QObject * QComponentContainer::getExportValue(char const * name, QPart::Share share)
 {
-    return get_export_value(QPart(nullptr, nullptr, name, share));
+    return getExportValue(QPart(nullptr, nullptr, name, share));
 }
 
-QVector<QObject *> QComponentContainer::get_export_values(QPart const & i)
+QVector<QObject *> QComponentContainer::getExportValues(QPart const & i)
 {
-    auto exports = QComponentRegistry::get_exports(i);
+    auto exports = QComponentRegistry::getExports(i);
     QVector<QObject *> list;
     for (auto e : exports)
-        list.push_back(get_export_value(i, *e));
+        list.push_back(getExportValue(i, *e));
     return list;
 }
 
-QVector<QObject *> QComponentContainer::get_export_values(QMetaObject const & meta, QPart::Share share)
+void QComponentContainer::composeValue(QObject *value)
 {
-    return get_export_values(QPart(&meta, &meta, meta.className(), share));
+    QComponentRegistry::compose(this, *value->metaObject(), value);
 }
 
-QVector<QObject *> QComponentContainer::get_export_values(char const * name, QPart::Share share)
+QVector<QObject *> QComponentContainer::getExportValues(QMetaObject const & meta, QPart::Share share)
 {
-    return get_export_values(QPart(nullptr, nullptr, name, share));
+    return getExportValues(QPart(&meta, &meta, meta.className(), share));
 }
 
-void QComponentContainer::release_value(QObject *value)
+QVector<QObject *> QComponentContainer::getExportValues(char const * name, QPart::Share share)
 {
-    auto it = shared_objs_.find(value->metaObject());
-    if (it != shared_objs_.end() && *it == value)
+    return getExportValues(QPart(nullptr, nullptr, name, share));
+}
+
+void QComponentContainer::releaseValue(QObject *value)
+{
+    auto it = sharedObjs_.find(value->metaObject());
+    if (it != sharedObjs_.end() && *it == value)
         return;
     //auto it = non_shared_objs_.find(value);
     //if (it == non_shared_objs_.end())
@@ -159,9 +164,9 @@ void QComponentContainer::release_value(QObject *value)
     value->deleteLater();
 }
 
-QLazy QComponentContainer::get_export(QPart const & i)
+QLazy QComponentContainer::getExport(QPart const & i)
 {
-    auto exports = QComponentRegistry::get_exports(i);
+    auto exports = QComponentRegistry::getExports(i);
     if (exports.empty())
         return QLazy();
     if (exports.size() > 1)
@@ -170,32 +175,32 @@ QLazy QComponentContainer::get_export(QPart const & i)
     return QLazy(this, e, e->share(i));
 }
 
-QLazy QComponentContainer::get_export(QMetaObject const & meta, QPart::Share share)
+QLazy QComponentContainer::getExport(QMetaObject const & meta, QPart::Share share)
 {
-    return get_export(QPart(&meta, &meta, meta.className(), share));
+    return getExport(QPart(&meta, &meta, meta.className(), share));
 }
 
-QLazy QComponentContainer::get_export(char const * name, QPart::Share share)
+QLazy QComponentContainer::getExport(char const * name, QPart::Share share)
 {
-    return get_export(QPart(nullptr, nullptr, name, share));
+    return getExport(QPart(nullptr, nullptr, name, share));
 }
 
-QVector<QLazy> QComponentContainer::get_exports(QPart const & i)
+QVector<QLazy> QComponentContainer::getExports(QPart const & i)
 {
-    auto exports = QComponentRegistry::get_exports(i);
+    auto exports = QComponentRegistry::getExports(i);
     QVector<QLazy> list;
     for (auto e : exports)
         list.push_back(QLazy(this, e, e->share(i)));
     return list;
 }
 
-QVector<QLazy> QComponentContainer::get_exports(QMetaObject const & meta, QPart::Share share)
+QVector<QLazy> QComponentContainer::getExports(QMetaObject const & meta, QPart::Share share)
 {
-    return get_exports(QPart(&meta, &meta, meta.className(), share));
+    return getExports(QPart(&meta, &meta, meta.className(), share));
 }
 
-QVector<QLazy> QComponentContainer::get_exports(char const * name, QPart::Share share)
+QVector<QLazy> QComponentContainer::getExports(char const * name, QPart::Share share)
 {
-    return get_exports(QPart(nullptr, nullptr, name, share));
+    return getExports(QPart(nullptr, nullptr, name, share));
 }
 
