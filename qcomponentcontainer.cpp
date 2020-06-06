@@ -41,11 +41,31 @@ QComponentContainer::QComponentContainer()
 
 QComponentContainer::~QComponentContainer()
 {
-    for (QObject * so : sharedObjs_)
-        delete so;
+    QVector<QObject *> deleted;
+    do {
+        QVector<QObject *> nd;
+        for (QVector<QObject *> & so : sharedObjs_) {
+            if (so.size() > 1)
+                so.erase(std::remove_if(so.begin(), so.end(),
+                                    [deleted](QObject * o) { return deleted.contains(o); }),
+                    so.end());
+            if (so.size() == 1) {
+                nd.append(so.first());
+                qDebug() << "release shared object " << so.first();
+                delete so.first();
+                so.clear();
+            }
+        }
+        deleted.swap(nd);
+    } while (!deleted.isEmpty());
+    for (QVector<QObject *> & so : sharedObjs_) {
+        if (!so.isEmpty()) {
+            qWarning() << "can't release shared object " << so.first();
+        }
+    }
     sharedObjs_.clear();
     for (void * nso : nonSharedObjs_.keys()) {
-        qDebug() << "may leak not shared object " << nso;
+        qWarning() << "may leak not shared object " << nso;
     }
 }
 
@@ -79,13 +99,19 @@ QObject * QComponentContainer::getExportValue(
                 qWarning() << "QComponentContainer failed create object of " << meta.className();
                 return nullptr;
             }
-            QComponentRegistry::compose(this, meta, o);
-            sharedObjs_.insert(&meta, o);
+            it = sharedObjs_.insert(&meta, QVector<QObject*>{o});
+            QVector<QObject *> depends;
+            QComponentRegistry::compose(this, meta, o, depends);
+            for (QObject * d : depends) {
+                auto it = sharedObjs_.find(d->metaObject());
+                if (it != sharedObjs_.end() && (*it).first() == d)
+                    (*it).append(o);
+            }
             int index = meta.indexOfMethod("onComposition()");
             if (index >= 0)
                 meta.method(index).invoke(o);
         } else {
-            o = *it;
+            o = (*it).first();
         }
     } else {
         //temp_non_shared_objs_.push_back(QVector<QObject *>());
@@ -117,6 +143,16 @@ QObject * QComponentContainer::getExportValue(QPart const & i)
     return getExportValue(i, *exports.front());
 }
 
+QObject *QComponentContainer::getExportValue(const QImportBase &i)
+{
+    auto exports = QComponentRegistry::getExports(i);
+    if (exports.empty())
+        return nullptr;
+    if (exports.size() > 1)
+        return nullptr;
+    return getExportValue(i, *exports.front());
+}
+
 QObject * QComponentContainer::getExportValue(QMetaObject const & meta, QPart::Share share)
 {
     return getExportValue(QPart(&meta, &meta, meta.className(), share));
@@ -130,6 +166,15 @@ QObject * QComponentContainer::getExportValue(char const * name, QPart::Share sh
 QVector<QObject *> QComponentContainer::getExportValues(QPart const & i)
 {
     auto exports = QComponentRegistry::collectExports(i);
+    QVector<QObject *> list;
+    for (auto e : exports)
+        list.push_back(getExportValue(i, *e));
+    return list;
+}
+
+QVector<QObject *> QComponentContainer::getExportValues(const QImportBase &i)
+{
+    auto exports = QComponentRegistry::getExports(i);
     QVector<QObject *> list;
     for (auto e : exports)
         list.push_back(getExportValue(i, *e));
@@ -154,7 +199,7 @@ QVector<QObject *> QComponentContainer::getExportValues(char const * name, QPart
 void QComponentContainer::releaseValue(QObject *value)
 {
     auto it = sharedObjs_.find(value->metaObject());
-    if (it != sharedObjs_.end() && *it == value)
+    if (it != sharedObjs_.end() && (*it).first() == value)
         return;
     //auto it = non_shared_objs_.find(value);
     //if (it == non_shared_objs_.end())

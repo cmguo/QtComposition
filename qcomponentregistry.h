@@ -25,6 +25,8 @@ public:
 
     static void compose(QComponentContainer * cont, QMetaObject const & type, QObject * obj);
 
+    static void compose(QComponentContainer * cont, QMetaObject const & type, QObject * obj, QVector<QObject *> & depends);
+
 private:
     struct Meta;
 

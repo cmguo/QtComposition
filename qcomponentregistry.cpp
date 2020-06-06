@@ -95,30 +95,43 @@ void QComponentRegistry::composition()
     }
 }
 
+void QComponentRegistry::compose(QComponentContainer *cont, const QMetaObject &type, QObject *obj)
+{
+    QVector<QObject *> depends;
+    compose(cont, type, obj, depends);
+}
+
 void QComponentRegistry::compose(
-        QComponentContainer * cont, QMetaObject const & type, QObject * obj)
+        QComponentContainer * cont, QMetaObject const & type, QObject * obj, QVector<QObject *> & depends)
 {
     if (&type == &QObject::staticMetaObject)
         return;
     auto iter = metas_.find(&type);
     if (iter == metas_.end()) {
-        compose(cont, *type.superClass(), obj);
+        compose(cont, *type.superClass(), obj, depends);
         return;
     }
     Meta const & meta = *iter;
     for (auto i : meta.imports) {
-        if (i->count_ == QImportBase::many)
-            if (i->lazy_)
+        if (i->count_ == QImportBase::many) {
+            if (i->lazy_) {
                 i->compose(obj, cont->getExports(*i));
-            else
-                i->compose(obj, cont->getExportValues(*i));
-        else
-            if (i->lazy_)
+            } else {
+                QVector<QObject *> deps = cont->getExportValues(*i);
+                depends.append(deps);
+                i->compose(obj, deps);
+            }
+        } else {
+            if (i->lazy_) {
                 i->compose(obj, cont->getExport(*i));
-            else
-                i->compose(obj, cont->getExportValue(*i));
+            } else {
+                QObject * dep = cont->getExportValue(*i);
+                depends.append(dep);
+                i->compose(obj, dep);
+            }
+        }
     }
-    compose(cont, *type.superClass(), obj);
+    compose(cont, *type.superClass(), obj, depends);
 }
 
 QComponentRegistry::Meta & QComponentRegistry::getMeta(QMetaObject const * meta)

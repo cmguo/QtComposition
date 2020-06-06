@@ -31,6 +31,8 @@ public:
 
     QObject * getExportValue(QPart const & i);
 
+    QObject * getExportValue(QImportBase const & i);
+
     template<typename T>
     QVector<QObject *> getExportValues(QPart::Share share = QPart::Share::any)
     {
@@ -42,6 +44,8 @@ public:
     QVector<QObject *> getExportValues(char const * name, QPart::Share share = QPart::Share::any);
 
     QVector<QObject *> getExportValues(QPart const & i);
+
+    QVector<QObject *> getExportValues(QImportBase const & i);
 
     void composeValue(QObject * value);
 
@@ -98,7 +102,7 @@ private:
     QObject * getExportValue(QMetaObject const & meta, bool share);
 
 private:
-    QMap<QMetaObject const *, QObject *> sharedObjs_;
+    QMap<QMetaObject const *, QVector<QObject *>> sharedObjs_;
     QMap<QObject *, QVector<QObject *>> nonSharedObjs_;
     QVector<QVector<QObject *>> tempNonSharedObjs_;
 };
