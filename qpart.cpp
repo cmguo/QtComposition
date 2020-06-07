@@ -3,6 +3,8 @@
 
 #include <string.h>
 
+char const * QPart::ATTR_MINE_TYPE = QPART_ATTR_MINE_TYPE;
+
 QMetaObject const * const QPart::AUTO_META = reinterpret_cast<QMetaObject*>(1);
 
 QPart::QPart(QMetaObject const * meta, QMetaObject const * type, char const * name, Share share)
@@ -57,3 +59,15 @@ bool QPart::share(const QPart &i) const
     return i.share_ != Share::nonshared && share_ != Share::nonshared;
 }
 
+const char * QPart::attr(const char *key, const char *defalutValue) const
+{
+    const char * value = attrs_.value(key);
+    if (value)
+        return value;
+    auto i = attrs_.keyValueBegin();
+    for (; i != attrs_.keyValueEnd(); ++i) {
+        if (strcmp(key, (*i).first) == 0)
+            return (*i).second;
+    }
+    return defalutValue;
+}

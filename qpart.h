@@ -1,10 +1,18 @@
 #ifndef QPART_H
 #define QPART_H
 
+#include "QtComposition_global.h"
+
 #include <QMetaObject>
 #include <QMap>
 
-class QPart
+#define QPART_ATTR_MINE_TYPE "mineType"
+
+#define QMINE_TYPE(x) Q_CLASSINFO("mineType", x)
+
+#define QInheritedExport Q_CLASSINFO("InheritedExport", "true")
+
+class QTCOMPOSITION_EXPORT QPart
 {
 public:
     enum Share
@@ -13,6 +21,8 @@ public:
         shared,
         nonshared
     };
+
+    static char const * ATTR_MINE_TYPE;
 
 public:
     QPart(QMetaObject const * meta, QMetaObject const * type, char const * name, Share share = Share::any);
@@ -66,6 +76,12 @@ public:
         char const * value_;
     };
 
+    class MineTypeAttribute : public Attribute
+    {
+    public:
+        MineTypeAttribute(char const * value) : Attribute(ATTR_MINE_TYPE, value) {}
+    };
+
 protected:
     QPart(QMetaObject const * meta, bool isExport);
 
@@ -111,10 +127,9 @@ public:
         return share_;
     }
 
-    char const * attr(char const * key, char const * defalutValue = nullptr) const
-    {
-        return attrs_.value(key, defalutValue);
-    }
+    char const * attr(char const * key, char const * defalutValue = nullptr) const;
+
+    char const * attrMineType() const { return attr(ATTR_MINE_TYPE); }
 
 protected:
     friend class QComponentRegistry;

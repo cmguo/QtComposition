@@ -36,10 +36,11 @@ void QComponentRegistry::composition()
     for (auto m = metas_.keyValueBegin(); m != metas_.keyValueEnd(); ++m) {
         QVector<QExportBase *> exports = (*m).second.exports;
         for (QExportBase * i : exports) {
+            i->collectClassInfo();
             QMetaObject const * type = (i->type_ ? i->type_ : i->meta_)->superClass();
             while (type && type != &QObject::staticMetaObject) {
                 int index = type->indexOfClassInfo("InheritedExport");
-                if (index >= 0) {
+                if (index >= type->superClass()->classInfoCount()) {
                     if (QByteArray("true") == type->classInfo(index).value()) {
                         (*m).second.exports.push_back(new QExportBase(*i, type));
                     }

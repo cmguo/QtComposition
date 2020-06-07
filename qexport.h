@@ -1,7 +1,6 @@
 #ifndef QEXPORT_H
 #define QEXPORT_H
 
-#include "QtComposition_global.h"
 #include "qpart.h"
 
 class QImportBase;
@@ -18,6 +17,8 @@ protected:
 private:
     friend class QComponentRegistry;
     friend class QComponentContainer;
+
+    void collectClassInfo();
 };
 
 template <typename T, typename U = T>

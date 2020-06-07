@@ -1,7 +1,6 @@
 #ifndef QIMPORT_H
 #define QIMPORT_H
 
-#include "QtComposition_global.h"
 #include "qpart.h"
 #include "qlazy.h"
 
