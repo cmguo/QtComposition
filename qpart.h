@@ -8,7 +8,7 @@
 
 #define QPART_ATTR_MINE_TYPE "mineType"
 
-#define QMINE_TYPE(x) Q_CLASSINFO("mineType", x)
+#define Q_MINE_TYPE(x) Q_CLASSINFO("mineType", x)
 
 #define Q_INHERITED_EXPORT Q_CLASSINFO("InheritedExport", "true")
 
