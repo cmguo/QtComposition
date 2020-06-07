@@ -10,7 +10,7 @@
 
 #define QMINE_TYPE(x) Q_CLASSINFO("mineType", x)
 
-#define QInheritedExport Q_CLASSINFO("InheritedExport", "true")
+#define Q_INHERITED_EXPORT Q_CLASSINFO("InheritedExport", "true")
 
 class QTCOMPOSITION_EXPORT QPart
 {
