@@ -119,7 +119,8 @@ void QComponentRegistry::compose(
                 i->compose(obj, cont->getExports(*i));
             } else {
                 QVector<QObject *> deps = cont->getExportValues(*i);
-                depends.append(deps);
+                if (i->share() != QPart::nonshared)
+                    depends.append(deps);
                 i->compose(obj, deps);
             }
         } else {
@@ -127,7 +128,8 @@ void QComponentRegistry::compose(
                 i->compose(obj, cont->getExport(*i));
             } else {
                 QObject * dep = cont->getExportValue(*i);
-                depends.append(dep);
+                if (i->share() != QPart::nonshared)
+                    depends.append(dep);
                 i->compose(obj, dep);
             }
         }
