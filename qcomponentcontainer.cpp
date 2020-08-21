@@ -99,6 +99,7 @@ QObject * QComponentContainer::getExportValue(
                 qWarning() << "QComponentContainer failed create object of " << meta.className();
                 return nullptr;
             }
+            o->setParent(this);
             it = sharedObjs_.insert(&meta, QVector<QObject*>{o});
             QVector<QObject *> depends;
             QComponentRegistry::compose(this, meta, o, depends);

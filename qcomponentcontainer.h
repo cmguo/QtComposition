@@ -8,7 +8,7 @@
 
 #include <functional>
 
-class QTCOMPOSITION_EXPORT QComponentContainer
+class QTCOMPOSITION_EXPORT QComponentContainer : public QObject
 {
 public:
     static QComponentContainer & globalInstance();
