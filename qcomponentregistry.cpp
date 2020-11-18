@@ -6,12 +6,13 @@
 
 struct QComponentRegistry::Meta
 {
-    Meta() : state(Unknown){}
+    Meta() : state(Unknown) {}
 
     enum State { Unknown, Valid, Invalid };
     State state;
     QVector<QExportBase *> exports;
     QVector<QImportBase *> imports;
+    QVector<QMetaObject const *> overrides;
 };
 
 QMap<QMetaObject const *, QComponentRegistry::Meta> QComponentRegistry::metas_;
@@ -32,8 +33,8 @@ void QComponentRegistry::composition()
     if (composed == true)
         return;
     composed = true;
-    // InheritedExport
     for (auto m = metas_.keyValueBegin(); m != metas_.keyValueEnd(); ++m) {
+        // InheritedExport
         QVector<QExportBase *> exports = (*m).second.exports;
         for (QExportBase * i : exports) {
             i->collectClassInfo();
@@ -48,7 +49,19 @@ void QComponentRegistry::composition()
                 type = type->superClass();
             }
         }
+        // OverrideExport
+        QMetaObject const * type = (*m).first;
+        int index = type->indexOfClassInfo("OverrideExport");
+        if (index >= type->classInfoCount()
+                && QByteArray("true") == type->classInfo(index).value()) {
+            type = type->superClass();
+            while (type && type != &QObject::staticMetaObject) {
+                (*m).second.overrides.append(type);
+                type = type->superClass();
+            }
+        }
     }
+    // Verify
     QVector<QMetaObject const *> invalids;
     int count = 0;
     for (auto m = metas_.keyValueBegin(); m != metas_.keyValueEnd(); ++m) {
@@ -69,6 +82,7 @@ void QComponentRegistry::composition()
             }
         }
     }
+    // Verify Recursive
     while (count < invalids.size()) {
         QMetaObject const * meta = invalids[count++];
         for (auto m = metas_.keyValueBegin(); m != metas_.keyValueEnd(); ++m) {
@@ -149,14 +163,27 @@ QComponentRegistry::Meta & QComponentRegistry::getMeta(QMetaObject const * meta)
 QVector<QExportBase const *> QComponentRegistry::collectExports(QPart const & i)
 {
     QVector<QExportBase const *> list;
-    for (auto & m : metas_) {
-        if (m.state == Meta::Invalid)
+    QList<QMetaObject const *> overrides;
+    for (auto m = metas_.keyValueBegin(); m != metas_.keyValueEnd(); ++m) {
+        if ((*m).second.state == Meta::Invalid)
             continue;
-        for (QExportBase * e : m.exports) {
-            if (e->match(i)) {
-                list.push_back(e);
-                break;
+        if (overrides.contains((*m).first))
+            continue;
+        for (QExportBase * e : (*m).second.exports) {
+            if (!e->match(i))
+                continue;
+            list.push_back(e);
+            // remove overrides
+            for (auto meta : (*m).second.overrides) {
+                if (overrides.contains(meta))
+                    continue;
+                overrides.append(meta);
+                list.erase(
+                            std::remove_if(list.begin(), list.end(),
+                                           [meta](auto e) { return e->meta_ == meta;}),
+                            list.end());
             }
+            break;
         }
     }
     return list;

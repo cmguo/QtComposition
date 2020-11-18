@@ -32,6 +32,7 @@ private:
 
     static Meta & getMeta(QMetaObject const * type);
 
+private:
     static QMap<QMetaObject const *, Meta> metas_;
 };
 

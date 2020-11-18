@@ -12,6 +12,8 @@
 
 #define Q_INHERITED_EXPORT Q_CLASSINFO("InheritedExport", "true")
 
+#define Q_OVERRIDE_EXPORT Q_CLASSINFO("OverrideExport", "true")
+
 class QTCOMPOSITION_EXPORT QPart
 {
 public:
