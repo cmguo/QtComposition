@@ -87,19 +87,19 @@ QObject * QComponentContainer::getExportValue(QMetaObject const & meta, bool sha
 }
 
 QObject * QComponentContainer::getExportValue(
-        QMetaObject const & meta, bool share,
-        std::function<QObject *(QMetaObject const &)> const & creator)
+        QMetaObject const & meta2, bool share,
+        creator_t const & creator)
 {
     QObject * o = nullptr;
+    QMetaObject const & meta = QComponentRegistry::loadMeta(meta2);
     if (share) {
-        auto it = sharedObjs_.find(&meta);
+        auto it = sharedObjs_.find(&meta2);
         if (it == sharedObjs_.end()) {
             o = creator(meta);
             if (o == nullptr) {
                 qWarning() << "QComponentContainer failed create object of " << meta.className();
                 return nullptr;
             }
-            o->setParent(this);
             it = sharedObjs_.insert(&meta, QVector<QObject*>{o});
             QVector<QObject *> depends;
             QComponentRegistry::compose(this, meta, o, depends);
@@ -137,10 +137,11 @@ QObject * QComponentContainer::getExportValue(
 QObject * QComponentContainer::getExportValue(QPart const & i)
 {
     auto exports = QComponentRegistry::collectExports(i);
-    if (exports.empty())
+    if (exports.size() != 1) {
+        qWarning() << "QComponentContainer::getExportValue failed"
+                 << i.type()->className() << i.name() << exports.size();
         return nullptr;
-    if (exports.size() > 1)
-        return nullptr;
+    }
     return getExportValue(i, *exports.front());
 }
 
@@ -168,8 +169,11 @@ QVector<QObject *> QComponentContainer::getExportValues(QPart const & i)
 {
     auto exports = QComponentRegistry::collectExports(i);
     QVector<QObject *> list;
-    for (auto e : exports)
-        list.push_back(getExportValue(i, *e));
+    for (auto e : exports) {
+        QObject * o = getExportValue(i, *e);
+        if (o)
+            list.push_back(o);
+    }
     return list;
 }
 
@@ -177,8 +181,11 @@ QVector<QObject *> QComponentContainer::getExportValues(const QImportBase &i)
 {
     auto exports = QComponentRegistry::getExports(i);
     QVector<QObject *> list;
-    for (auto e : exports)
-        list.push_back(getExportValue(i, *e));
+    for (auto e : exports) {
+        QObject * o = getExportValue(i, *e);
+        if (o)
+            list.push_back(o);
+    }
     return list;
 }
 

@@ -19,23 +19,29 @@ DEFINES += QT_DEPRECATED_WARNINGS
 include(../config.pri)
 
 SOURCES += \
+    metaobjectbuilder.cpp \
     qcomponentcontainer.cpp \
+    qcomponentfactoryinterface.cpp \
     qcomponentregistry.cpp \
     qexport.cpp \
     qimport.cpp \
     qlazy.cpp \
     qpart.cpp \
+    qpartmetaobject.cpp \
     qtestcomposition.cpp
 
 HEADERS += \
     QtComposition_global.h \
+    metaobjectbuilder.h \
     qcomponentcontainer.h \
+    qcomponentfactoryinterface.h \
     qcomponentregistry.h \
     qexport.h \
     qimport.h \
     qlazy.h \
     qlazy.hpp \
     qpart.h \
+    qpartmetaobject.h \
     qtestcomposition.h
 
 includes.files = $$PWD/*.h $$PWD/*.hpp

@@ -12,6 +12,8 @@ class QTCOMPOSITION_EXPORT QExportBase : public QPart
 protected:
     QExportBase(QMetaObject const * meta);
 
+    QExportBase(QVariantMap const & desc);
+
     QExportBase(QExportBase const & o, QMetaObject const * newType);
 
 private:
@@ -37,7 +39,7 @@ public:
         config(Type(&U::staticMetaObject), Name(name), Shared(share));
     }
 
-    template <typename ...Args>
+    template <typename ...Args, is_config_t<Args...> = true>
     QExport(Args const & ...args)
         : QExportBase(&T::staticMetaObject)
     {

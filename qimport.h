@@ -24,6 +24,8 @@ public:
 protected:
     QImportBase(QMetaObject const * meta, char const * prop);
 
+    QImportBase(QVariantMap const & desc);
+
     template<typename T>
     inline static void registerType()
     {
@@ -154,7 +156,7 @@ public:
         config(TypeT<U>(), Name(name), Shared(share));
     }
 
-    template <typename ...Args>
+    template <typename ...Args, is_config_t<Args...> = true>
     QImport(char const * prop, Args const & ...args)
         : QImportBase(&T::staticMetaObject, prop)
     {

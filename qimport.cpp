@@ -13,11 +13,32 @@ QImportBase::QImportBase(QMetaObject const * meta, char const * prop)
 {
 }
 
+QImportBase::QImportBase(const QVariantMap &desc)
+    : QPart(desc, false)
+    , prop_(nullptr)
+    , count_(Import::exactly)
+    , lazy_(false)
+    , typeRegister_(nullptr)
+{
+    static QStringList countNames = {"optional", "exactly", "many"};
+    QByteArray prop = desc.value("prop").toByteArray();
+    if (prop.isEmpty())
+        throw std::runtime_error("import prop error");
+    prop_ = registerString(prop);
+    if (desc.contains("count")) {
+        int count = countNames.indexOf(desc.value("count").toString());
+        if (count < 0)
+            throw std::runtime_error("import count error");
+        count_ = static_cast<Import>(count);
+    }
+    lazy_ = desc.value("lazy").toBool();
+}
+
 bool QImportBase::checkType()
 {
     int i = meta_->indexOfProperty(prop_);
     if (i < 0)
-        return false;
+        return type_ != AUTO_META;
     QMetaProperty p = meta_->property(i);
     QByteArray tm = p.typeName();
     int t = p.userType();
