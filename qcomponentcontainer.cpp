@@ -139,7 +139,7 @@ QObject * QComponentContainer::getExportValue(QPart const & i)
     auto exports = QComponentRegistry::collectExports(i);
     if (exports.size() != 1) {
         qWarning() << "QComponentContainer::getExportValue failed"
-                 << i.type()->className() << i.name() << exports.size();
+                 << i.name() << exports.size();
         return nullptr;
     }
     return getExportValue(i, *exports.front());

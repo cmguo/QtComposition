@@ -4,6 +4,8 @@
 #include <QMetaProperty>
 #include <QVariant>
 
+#include <stdexcept>
+
 QImportBase::QImportBase(QMetaObject const * meta, char const * prop)
     : QPart(meta, false)
     , prop_(prop)
