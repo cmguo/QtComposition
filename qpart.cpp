@@ -4,6 +4,8 @@
 
 #include <QMetaClassInfo>
 
+#include <stdexcept>
+
 #include <string.h>
 
 char const * QPart::ATTR_MINE_TYPE = QPART_ATTR_MINE_TYPE;
