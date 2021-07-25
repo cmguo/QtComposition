@@ -27,6 +27,8 @@ public:
         nonshared
     };
 
+    Q_ENUMS(Share)
+
     static char const * ATTR_MINE_TYPE;
 
 public:

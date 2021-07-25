@@ -31,11 +31,14 @@ public:
 
     static QVector<QExportBase const *> collectExports(QPart const & i);
 
+    // simple return exports member of QImportBase
     static QVector<QExportBase const *> getExports(QImportBase const & i);
 
     static void compose(QComponentContainer * cont, QMetaObject const & type, QObject * obj);
 
     static void compose(QComponentContainer * cont, QMetaObject const & type, QObject * obj, QVector<QObject *> & depends);
+
+    static QVector<QExportBase const *> getAllExports(QPart::Share share);
 
 private:
     struct Meta;

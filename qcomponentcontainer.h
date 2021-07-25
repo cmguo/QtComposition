@@ -27,8 +27,6 @@ public:
 
     QObject * getExportValue(QMetaObject const & type, QPart::Share share = QPart::Share::any);
 
-    QObject * getExportValue(char const * name, QPart::Share share = QPart::Share::any);
-
     QObject * getExportValue(QPart const & i);
 
     QObject * getExportValue(QImportBase const & i);
@@ -41,8 +39,6 @@ public:
 
     QVector<QObject *> getExportValues(QMetaObject const & type, QPart::Share share = QPart::Share::any);
 
-    QVector<QObject *> getExportValues(char const * name, QPart::Share share = QPart::Share::any);
-
     QVector<QObject *> getExportValues(QPart const & i);
 
     QVector<QObject *> getExportValues(QImportBase const & i);
@@ -50,6 +46,15 @@ public:
     void composeValue(QObject * value);
 
     void releaseValue(QObject * value);
+
+public slots:
+    QObject * getExportValue(char const * name, QPart::Share share = QPart::Share::any);
+
+    QObject * getExportValue(char const * type, char const * name, QPart::Share share = QPart::Share::any);
+
+    QVector<QObject *> getExportValues(char const * name, QPart::Share share = QPart::Share::any);
+
+    QVector<QObject *> getExportValues(char const * type, char const * name, QPart::Share share = QPart::Share::any);
 
 public:
     template<typename T>
@@ -91,6 +96,8 @@ public:
             return meta.newInstance(std::move(args)...);
         });
     }
+
+    QVector<QLazy> getAllExports(QPart::Share share);
 
 private:
     Q_DISABLE_COPY(QComponentContainer)

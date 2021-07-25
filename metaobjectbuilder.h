@@ -1,11 +1,14 @@
 #ifndef METAOBJECTBUILD_H
 #define METAOBJECTBUILD_H
 
+#include "QtComposition_global.h"
+
 #include <QHash>
 #include <QMap>
+#include <QMetaMethod>
 #include <QVector>
 
-class MetaObjectBuilder
+class QTCOMPOSITION_EXPORT MetaObjectBuilder
 {
 public:
     MetaObjectBuilder();
@@ -22,11 +25,17 @@ public:
 
     void addSignal(const QByteArray &prototype, const QByteArray &parameters);
 
+    void addSignal(const QMetaMethod & method);
+
     void addSlot(const QByteArray &prototype, int flags);
 
     void addSlot(const QByteArray &type, const QByteArray &prototype, const QByteArray &parameters, int flags);
 
+    void addSlot(const QMetaMethod & method);
+
     void addProperty(const QByteArray &type, const QByteArray &name, uint flags);
+
+    void addProperty(const QMetaProperty & method);
 
     void addSetterSlot(const QByteArray &property);
 

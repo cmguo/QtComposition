@@ -20,17 +20,20 @@ struct QComponentRegistry::Loader : public QPluginLoader
 struct QComponentRegistry::Meta
 {
     enum State { Unknown, Valid, Invalid };
-    QMetaObject const * meta = nullptr; // not always equal metas_'s key
+    // not always equal metas_'s key (fake meta)
+    QMetaObject const * meta = nullptr;
     State state = Unknown;
     QVector<QExportBase *> exports;
     QVector<QImportBase *> imports;
     QVector<QMetaObject const *> overrides;
     // for plugin
     Loader * loader = nullptr;
+    // Record parts for unloadMeta
     QMap<QPart *, QPart *> attaches;
 };
 
 QMap<QMetaObject const *, QComponentRegistry::Meta> QComponentRegistry::metas_;
+// use for static register parts, and then use by loadMeta after composition
 QMap<QPart *, bool> QComponentRegistry::foundParts_;
 QList<QComponentRegistry::Loader*> QComponentRegistry::loaders_;
 bool QComponentRegistry::composed_ = false;
@@ -60,13 +63,16 @@ void QComponentRegistry::composition()
     if (composed_ == true)
         return;
     composed_ = true;
+    // Collect loaders from plugins
     importPlugins(qApp->applicationDirPath() + "/plugins/components");
     // Collect Parts
     for (auto it = foundParts_.begin(); it != foundParts_.end(); ++it) {
         Meta & m = getMeta(it.key()->meta());
-        if (it.value()) {
+        if (it.value()) { // this is export part
             QExportBase * e = static_cast<QExportBase *>(it.key());
+            // Translate classInfo into attrs
             e->collectClassInfo();
+            // Handle "InheritedExport": also export with super type
             inheritedExport(m, e);
             m.exports.append(e);
         } else {
@@ -74,7 +80,7 @@ void QComponentRegistry::composition()
         }
     }
     foundParts_.clear();
-    // Collect Loader's Metas
+    // Collect Loader's Metas, which are fake metaobjects really
     for (Loader * l : loaders_) {
         QSet<QMetaObject const *> metas;
         for (auto it = l->parts.begin(); it != l->parts.end(); ++it) {
@@ -85,7 +91,7 @@ void QComponentRegistry::composition()
             metas_[m].loader = l;
         }
     }
-    // Verify
+    // Verify (also with plugin meta and parts)
     QVector<QMetaObject const *> invalids;
     int count = 0;
     for (auto & m : metas_) {
@@ -112,12 +118,14 @@ void QComponentRegistry::composition()
         for (auto & m : metas_) {
             if (m.state == Meta::Invalid)
                 continue;
+            // Invalidate children
             if (m.meta->inherits(meta)) {
                 qWarning() << "QComponentRegistry:" << m.meta->className() << "!base" << meta->className();
                 m.state = Meta::Invalid;
                 invalids.push_back(m.meta);
                 continue;
             }
+            // Invalidate imports
             for (QImportBase * i : m.imports) {
                 i->exports.erase(
                             std::remove_if(i->exports.begin(), i->exports.end(),
@@ -139,7 +147,7 @@ void QComponentRegistry::importPlugin(const QString &file)
     qInfo() << "QComponentRegistry::importPlugin" << file;
     Loader * l = new Loader;
     l->setFileName(file);
-    QJsonObject meta = l->metaData();
+    QJsonObject meta = l->metaData(); // created by MetaObjectBuilder
     if (meta.value("IID").toString() != ComponentFactory_iid) {
         delete l;
         return;
@@ -246,32 +254,36 @@ void QComponentRegistry::exportPlugin(const QString &file, const QString &json)
 
 const QMetaObject & QComponentRegistry::loadMeta(const QMetaObject &meta2)
 {
+    // Fake metaobjects can't have static_metacall
     if (meta2.d.static_metacall || !metas_.contains(&meta2))
         return meta2;
     auto & m = metas_[&meta2];
     if (m.loader == nullptr) {
-        qWarning() << "QComponentRegistry::loadPlugin no loader";
+        qWarning() << "QComponentRegistry::loadMeta no loader";
         return meta2;
     }
     if (!m.loader->isLoaded()) {
         if (!m.loader->instance()) {
-            qWarning() << "QComponentRegistry::loadPlugin failed" << m.loader->errorString();
+            qWarning() << "QComponentRegistry::loadMeta failed" << m.loader->errorString();
             return meta2;
         }
+        // When library is loadding, it's parts is register to foundParts_
         m.loader->parts.swap(foundParts_);
     }
     for (auto it = m.loader->parts.begin(); it != m.loader->parts.end(); ++it) {
-        QPart * p = it.key();
+        QPart * p = it.key(); // this is real part
         if (m.meta == p->meta() || QPart::typeMatch(m.meta, p->meta())) {
+            // Replace with real metaobject
             if (m.meta != p->meta()) {
                 m.meta = p->meta();
-                overrideExport(m);
+                overrideExport(m); // collect all super meta
             }
+            // Prepare parts and swap with fake one
             attachPart(m, p, it.value());
         }
     }
     if (m.meta == &meta2) {
-        qWarning() << "QComponentRegistry::loadPlugin no match parts";
+        qWarning() << "QComponentRegistry::loadMeta no match parts";
         return meta2;
     }
     m.loader->metas.append(&m);
@@ -281,6 +293,7 @@ const QMetaObject & QComponentRegistry::loadMeta(const QMetaObject &meta2)
 const QMetaObject &QComponentRegistry::unloadMeta(const QMetaObject &meta2)
 {
     for (auto & m : metas_) {
+        // Real metaobject equal
         if (m.meta == &meta2) {
             if (m.loader == nullptr)
                 return meta2;
@@ -346,6 +359,21 @@ void QComponentRegistry::compose(
     compose(cont, *type.superClass(), obj, depends);
 }
 
+QVector<const QExportBase *> QComponentRegistry::getAllExports(QPart::Share share)
+{
+    QVector<QExportBase const *> list;
+    QPart i(nullptr, nullptr, nullptr, share);
+    for (auto & m : metas_) {
+        if (m.state == Meta::Invalid)
+            continue;
+        for (QExportBase * e : m.exports) {
+            if (e->match(i))
+                list.append(e);
+        }
+    }
+    return list;
+}
+
 QComponentRegistry::Meta & QComponentRegistry::getMeta(QMetaObject const * meta)
 {
     auto iter = metas_.find(meta);
@@ -359,6 +387,7 @@ QComponentRegistry::Meta & QComponentRegistry::getMeta(QMetaObject const * meta)
 
 void QComponentRegistry::inheritedExport(QComponentRegistry::Meta &m, QExportBase *e)
 {
+    // We start with my part type, not my part meta
     QMetaObject const * type = (e->type_ ? e->type_ : e->meta_)->superClass();
     while (type && type != &QObject::staticMetaObject) {
         int index = type->indexOfClassInfo("InheritedExport");
@@ -390,9 +419,11 @@ void QComponentRegistry::attachPart(Meta & m, QPart *p, bool isExport)
     if (isExport) {
         QExportBase * ex = static_cast<QExportBase*>(p);
         ex->collectClassInfo();
+        // Find fake export part
         for (QExportBase * e : m.exports) {
             if (ex->match(*ex)) {
                 std::swap(*e, *ex);
+                // Handle "InheritedExport": also export with super type
                 inheritedExport(m, e);
                 m.attaches.insert(p, e);
                 return;
@@ -401,6 +432,7 @@ void QComponentRegistry::attachPart(Meta & m, QPart *p, bool isExport)
     } else {
         QImportBase * im = static_cast<QImportBase*>(p);
         im->checkType();
+        // Find fake import part
         for (QImportBase * i : m.imports) {
             if (i->match(*im) && strcmp(im->prop_, i->prop_) == 0
                     && i->lazy_ == im->lazy_ && i->count_ == im->count_) {
@@ -440,7 +472,7 @@ QVector<QExportBase const *> QComponentRegistry::collectExports(QPart const & i)
             if (!e->match(i))
                 continue;
             list.push_back(e);
-            // remove overrides
+            // Remove overrides
             for (auto meta : m.overrides) {
                 if (overrides.contains(meta))
                     continue;

@@ -18,16 +18,16 @@ protected:
 
 public:
     template<typename T>
-    T * get()
+    T * get() const
     {
         return qobject_cast<T *>(get_());
     }
 
     template<typename T, typename ...Args>
-    T * get(Args && ...args);
+    T * get(Args && ...args) const;
 
     template<typename T, typename ...Args>
-    T * create(Args && ...args);
+    T * create(Args && ...args) const;
 
     friend
     bool operator==(QLazy const & l, QLazy const & r)
@@ -41,14 +41,14 @@ public:
     }
 
 private:
-    QObject * get_();
+    QObject * get_() const;
 
 private:
     friend class QComponentContainer;
     QComponentContainer * cont_;
     QPart const * part_;
     bool share_;
-    QObject * obj_;
+    mutable QObject * obj_;
 };
 
 Q_DECLARE_METATYPE(QLazy)

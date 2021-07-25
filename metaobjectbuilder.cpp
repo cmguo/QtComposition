@@ -111,6 +111,12 @@ void MetaObjectBuilder::addSignal(const QByteArray &prototype, const QByteArray 
         signal.realPrototype = prototype;
 }
 
+void MetaObjectBuilder::addSignal(const QMetaMethod &method)
+{
+    addSignal(method.parameterTypes().join(","),
+            method.parameterNames().join(","));
+}
+
 void MetaObjectBuilder::addSlot(const QByteArray &prototype, int flags)
 {
     int ntype = prototype.indexOf(' ');
@@ -129,6 +135,16 @@ void MetaObjectBuilder::addSlot(const QByteArray &type, const QByteArray &protot
         slot.realPrototype = prototype;
 }
 
+void MetaObjectBuilder::addSlot(const QMetaMethod &method)
+{
+    QByteArray returnType = QMetaType::typeName(method.returnType());
+    int flags = method.attributes() << 4;
+    flags |= method.access();
+    flags |= method.methodType() << 2;
+    addSlot(returnType, method.parameterTypes().join(","),
+            method.parameterNames().join(","), flags);
+}
+
 void MetaObjectBuilder::addProperty(const QByteArray &type, const QByteArray &name, uint flags)
 {
     QByteArray propertyType(type);
@@ -143,6 +159,34 @@ void MetaObjectBuilder::addProperty(const QByteArray &type, const QByteArray &na
 //    if (flags & Writable)
 //        flags |= Stored;
     prop.flags |= flags;
+}
+
+void MetaObjectBuilder::addProperty(const QMetaProperty &property)
+{
+    uint flags = 0;
+    if (property.isReadable())
+        flags |= 1;
+    if (property.isWritable())
+        flags |= 2;
+    if (property.isResettable())
+        flags |= 4;
+    if (property.isEnumType())
+        flags |= 8;
+    if (property.isConstant())
+        flags |= 0x0400;
+    if (property.isFinal())
+        flags |= 0x0800;
+    if (property.isDesignable())
+        flags |= 0x01000;
+    if (property.isScriptable())
+        flags |= 0x04000;
+    if (property.isStored())
+        flags |= 0x010000;
+    if (property.isEditable())
+        flags |= 0x040000;
+    if (property.isUser())
+        flags |= 0x0100000;
+    addProperty(property.typeName(), property.name(), flags);
 }
 
 void MetaObjectBuilder::addSetterSlot(const QByteArray &property)
@@ -438,7 +482,7 @@ QByteArray MetaObjectBuilder::paramType(const QByteArray &prototype, int index, 
     QByteArray param(plist.at(index));
     if (param.isEmpty())
         return QByteArray();
-    bool byRef = param.endsWith('&') || param.endsWith("**");
+    bool byRef = param.endsWith('&') || param.endsWith("*");
     if (byRef) {
         param.truncate(param.length() - 1);
         if (out)

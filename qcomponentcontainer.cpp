@@ -165,6 +165,24 @@ QObject * QComponentContainer::getExportValue(char const * name, QPart::Share sh
     return getExportValue(QPart(nullptr, nullptr, name, share));
 }
 
+static QMetaObject const * metaObjectForType(const char *type)
+{
+    if (type == nullptr)
+        return nullptr;
+    int typeId = QMetaType::type(type);
+    if (typeId == 0)
+        return nullptr;
+    return QMetaType::metaObjectForType(typeId);
+}
+
+QObject *QComponentContainer::getExportValue(const char *type, const char *name, QPart::Share share)
+{
+    QMetaObject const * meta = metaObjectForType(type);
+    if (meta == nullptr)
+        return nullptr;
+    return getExportValue(QPart(nullptr, meta, name, share));
+}
+
 QVector<QObject *> QComponentContainer::getExportValues(QPart const & i)
 {
     auto exports = QComponentRegistry::collectExports(i);
@@ -202,6 +220,14 @@ QVector<QObject *> QComponentContainer::getExportValues(QMetaObject const & meta
 QVector<QObject *> QComponentContainer::getExportValues(char const * name, QPart::Share share)
 {
     return getExportValues(QPart(nullptr, nullptr, name, share));
+}
+
+QVector<QObject *> QComponentContainer::getExportValues(const char *type, const char *name, QPart::Share share)
+{
+    QMetaObject const * meta = metaObjectForType(type);
+    if (meta == nullptr)
+        return {};
+    return getExportValues(QPart(nullptr, meta, name, share));
 }
 
 void QComponentContainer::releaseValue(QObject *value)
@@ -276,5 +302,16 @@ QVector<QLazy> QComponentContainer::getExports(QMetaObject const & meta, QPart::
 QVector<QLazy> QComponentContainer::getExports(char const * name, QPart::Share share)
 {
     return getExports(QPart(nullptr, nullptr, name, share));
+}
+
+QVector<QLazy> QComponentContainer::getAllExports(QPart::Share share)
+{
+    auto exports = QComponentRegistry::getAllExports(share);
+    QVector<QLazy> list;
+    QPart i(nullptr, nullptr, nullptr, share);
+    for (auto e : exports) {
+        list.push_back(QLazy(this, e, e->share(i)));
+    }
+    return list;
 }
 
