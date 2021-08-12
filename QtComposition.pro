@@ -16,8 +16,6 @@ DEFINES += QT_DEPRECATED_WARNINGS
 # You can also select to disable deprecated APIs only up to a certain version of Qt.
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
-include(../config.pri)
-
 SOURCES += \
     metaobjectbuilder.cpp \
     qcomponentcontainer.cpp \
@@ -56,3 +54,16 @@ unix {
     target.path = /usr/lib
 }
 !isEmpty(target.path): INSTALLS += target
+
+include($$(applyConanPlugin))
+
+QMAKE_CXXFLAGS += /utf-8
+
+CONFIG(debug, debug|release) {
+    TARGET = $$join(TARGET,,,d)
+}
+
+CONFIG(release, debug|release) {
+    QMAKE_CXXFLAGS+=/Zi
+    QMAKE_LFLAGS+= /INCREMENTAL:NO /Debug
+}
