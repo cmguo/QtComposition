@@ -5,6 +5,10 @@ DEFINES += QTCOMPOSITION_LIBRARY
 
 CONFIG += c++14
 
+include($$(applyCommonConfig))
+
+include(../config.pri)
+
 # The following define makes your compiler emit warnings if you use
 # any Qt feature that has been marked deprecated (the exact warnings
 # depend on your compiler). Please consult the documentation of the
@@ -54,16 +58,3 @@ unix {
     target.path = /usr/lib
 }
 !isEmpty(target.path): INSTALLS += target
-
-include($$(applyConanPlugin))
-
-QMAKE_CXXFLAGS += /utf-8
-
-CONFIG(debug, debug|release) {
-    TARGET = $$join(TARGET,,,d)
-}
-
-CONFIG(release, debug|release) {
-    QMAKE_CXXFLAGS+=/Zi
-    QMAKE_LFLAGS+= /INCREMENTAL:NO /Debug
-}
