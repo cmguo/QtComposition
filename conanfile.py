@@ -13,7 +13,9 @@ class ConanConfig(QtConanFile):
     name = package_name
     version = package_version
 
-    git_url = "git@github.com:cmguo/QtComposition.git"
+    git_url = "git@gitlab.xiaoheiban.cn:windows/QtComposition.git"
+
+    exports_sources = f"../{name}*"
 
 
 if __name__ == '__main__':
