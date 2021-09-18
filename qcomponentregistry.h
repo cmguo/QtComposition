@@ -50,13 +50,17 @@ private:
 
     static void overrideExport(Meta & m);
 
+    static bool loadPlugin(Loader * loader);
+
+    static bool unloadPlugin(Loader * loader);
+
     static void attachPart(Meta & m, QPart * p, bool isExport);
 
     static void detachPart(Meta & m, QPart * p, bool isExport);
 
 private:
     static QMap<QMetaObject const *, Meta> metas_;
-    static QList<Loader*> loaders_;
+    static QMap<QString, Loader*> loaders_;
     static QMap<QPart *, bool> foundParts_;
     static bool composed_;
 };

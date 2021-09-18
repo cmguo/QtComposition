@@ -10,9 +10,12 @@
 #include <QCoreApplication>
 #include <QJsonDocument>
 
+#include <QtWidgets/QApplication>
+
 struct QComponentRegistry::Loader : public QPluginLoader
 {
-    QList<Meta *> metas;
+    QList<QString> depends;
+    QList<Meta *> metas; // loaded metas
     QMap<QPart *, bool> parts;
     // TODO: when can we unload
 };
@@ -35,7 +38,7 @@ struct QComponentRegistry::Meta
 QMap<QMetaObject const *, QComponentRegistry::Meta> QComponentRegistry::metas_;
 // use for static register parts, and then use by loadMeta after composition
 QMap<QPart *, bool> QComponentRegistry::foundParts_;
-QList<QComponentRegistry::Loader*> QComponentRegistry::loaders_;
+QMap<QString, QComponentRegistry::Loader*> QComponentRegistry::loaders_;
 bool QComponentRegistry::composed_ = false;
 
 void QComponentRegistry::addExport(QExportBase * e)
@@ -64,7 +67,8 @@ void QComponentRegistry::composition()
         return;
     composed_ = true;
     // Collect loaders from plugins
-    importPlugins(qApp->applicationDirPath() + "/plugins/components");
+    QString compDir = qApp->applicationDirPath() + "/plugins/components";
+    importPlugins(compDir);
     // Collect Parts
     for (auto it = foundParts_.begin(); it != foundParts_.end(); ++it) {
         Meta & m = getMeta(it.key()->meta());
@@ -153,13 +157,19 @@ void QComponentRegistry::importPlugin(const QString &file)
         return;
     }
     meta = meta.value("MetaData").toObject();
+    QJsonArray depends = meta.value("Depends").toArray();
+    for (QJsonValueRef d : depends) {
+        if (d.isString()) {
+            l->depends.append(d.toString());
+        }
+    }
     QJsonArray exports = meta.value("Exports").toArray();
     for (QJsonValueRef e : exports) {
         if (e.isObject()) {
             try {
                 QExportBase * e1 = new QExportBase(e.toObject().toVariantMap());
                 qDebug() << "QComponentRegistry::importPlugin" << e1->meta()->className()
-                         << e1->type()->className();
+                         << e1->type()->className() << e1->name();
                 l->parts.insert(e1, true);
             } catch (std::exception & e) {
                 qWarning() << "QComponentRegistry::importPlugin" << file << e.what();
@@ -179,7 +189,14 @@ void QComponentRegistry::importPlugin(const QString &file)
             }
         }
     }
-    loaders_.append(l);
+    QString name = QFileInfo(file).completeBaseName();
+#ifdef WIN32
+#ifdef _DEBUG
+    if (name.endsWith("d"))
+        name.truncate(name.size() - 1);
+#endif
+#endif
+    loaders_.insert(name, l);
 }
 
 void QComponentRegistry::exportPlugin(const QString &file, const QString &json)
@@ -262,14 +279,10 @@ const QMetaObject & QComponentRegistry::loadMeta(const QMetaObject &meta2)
         qWarning() << "QComponentRegistry::loadMeta no loader";
         return meta2;
     }
-    if (!m.loader->isLoaded()) {
-        if (!m.loader->instance()) {
-            qWarning() << "QComponentRegistry::loadMeta failed" << m.loader->errorString();
-            return meta2;
-        }
-        // When library is loadding, it's parts is register to foundParts_
-        m.loader->parts.swap(foundParts_);
+    if (!loadPlugin(m.loader)) {
+        return meta2;
     }
+    qInfo() << "QComponentRegistry::loadMeta" << meta2.className();
     for (auto it = m.loader->parts.begin(); it != m.loader->parts.end(); ++it) {
         QPart * p = it.key(); // this is real part
         if (m.meta == p->meta() || QPart::typeMatch(m.meta, p->meta())) {
@@ -412,6 +425,36 @@ void QComponentRegistry::overrideExport(QComponentRegistry::Meta &m)
             type = type->superClass();
         }
     }
+}
+
+bool QComponentRegistry::loadPlugin(QComponentRegistry::Loader *loader)
+{
+    if (!loader->isLoaded()) {
+        qInfo() << "QComponentRegistry::loadPlugin" << loader->fileName();
+        for (auto d : loader->depends) {
+            Loader * loader2 = loaders_.value(d);
+            if (loader2 == nullptr) {
+                qWarning() << "QComponentRegistry::loadPlugin failed: depend" << d;
+                return false;
+            }
+            if (!loadPlugin(loader2)) {
+                return false;
+            }
+        }
+        if (!loader->instance()) {
+            qWarning() << "QComponentRegistry::loadPlugin failed" << loader->errorString();
+            return false;
+        }
+        // When library is loadding, it's parts is register to foundParts_
+        loader->parts.swap(foundParts_);
+    }
+    return true;
+}
+
+bool QComponentRegistry::unloadPlugin(QComponentRegistry::Loader *loader)
+{
+    (void) loader;
+    return false;
 }
 
 void QComponentRegistry::attachPart(Meta & m, QPart *p, bool isExport)
