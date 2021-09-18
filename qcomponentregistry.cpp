@@ -157,6 +157,7 @@ void QComponentRegistry::importPlugin(const QString &file)
         return;
     }
     meta = meta.value("MetaData").toObject();
+    QString name = meta.value("Name").toString();
     QJsonArray depends = meta.value("Depends").toArray();
     for (QJsonValueRef d : depends) {
         if (d.isString()) {
@@ -189,13 +190,15 @@ void QComponentRegistry::importPlugin(const QString &file)
             }
         }
     }
-    QString name = QFileInfo(file).completeBaseName();
+    if (name.isEmpty()) {
+        name = QFileInfo(file).completeBaseName();
 #ifdef WIN32
 #ifdef _DEBUG
-    if (name.endsWith("d"))
-        name.truncate(name.size() - 1);
+        if (name.endsWith("d"))
+            name.truncate(name.size() - 1);
 #endif
 #endif
+    }
     loaders_.insert(name, l);
 }
 
