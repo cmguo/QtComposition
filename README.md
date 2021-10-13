@@ -23,6 +23,15 @@
    + 构造导入
    + 非 QObject 对象
 
+# 快速尝试
+通过 Conan 包管理器依赖
++ JFrog 源：conan remote add accumulating https://accumulating.jfrog.io/artifactory/api/conan/default-conan
++ 依赖配置：[requires] QtComposition/master@cmguo/stable
++ 仅在 Qt 5.15.0 VS2019 上构建
+
+# 方案说明
++ [基于 Qt 的组件合成框架](https://blog.csdn.net/luansxx/article/details/120668676)
+
 # 使用：
 通过全局变量初始化，注册导入和导出：
 ```cpp
