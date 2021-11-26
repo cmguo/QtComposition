@@ -32,7 +32,7 @@ protected:
         qRegisterMetaType<T*>();
     }
 
-    template<typename T>
+    template<typename T, typename Unused>
     class TypeT : public Type
     {
     public:
@@ -44,15 +44,15 @@ protected:
         }
     };
 
-    template<>
-    class TypeT<void> : public Type
+    template<typename Unused>
+    class TypeT<void, Unused> : public Type
     {
     public:
         TypeT() : Type(nullptr) { }
     };
 
-    template<>
-    class TypeT<void*> : public Type
+    template<typename Unused>
+    class TypeT<void*, Unused> : public Type
     {
     public:
         TypeT() : Type(AUTO_META) { }
@@ -80,7 +80,7 @@ protected:
         (void) ok;
     }
 
-    template<typename T>
+    template<typename T, typename Unused>
     class TypeMT : public Type
     {
     public:
@@ -92,15 +92,15 @@ protected:
         }
     };
 
-    template<>
-    class TypeMT<void> : public Type
+    template<typename Unused>
+    class TypeMT<void, Unused> : public Type
     {
     public:
         TypeMT() : Type(nullptr) { }
     };
 
-    template<>
-    class TypeMT<void*> : public Type
+    template<typename Unused>
+    class TypeMT<void*, Unused> : public Type
     {
     public:
         TypeMT() : Type(AUTO_META) { }
@@ -147,20 +147,20 @@ public:
     QImport(char const * prop, Share share = Share::any)
         : QImportBase(&T::staticMetaObject, prop)
     {
-        config(TypeT<U>(), Shared(share));
+        config(TypeT<U, void>(), Shared(share));
     }
 
     QImport(char const * prop, char const * name, Share share = Share::any)
         : QImportBase(&T::staticMetaObject, prop)
     {
-        config(TypeT<U>(), Name(name), Shared(share));
+        config(TypeT<U, void>(), Name(name), Shared(share));
     }
 
     template <typename ...Args, is_config_t<Args...> = true>
     QImport(char const * prop, Args const & ...args)
         : QImportBase(&T::staticMetaObject, prop)
     {
-        config(TypeT<U>(), args...);
+        config(TypeT<U, void>(), args...);
     }
 };
 
@@ -171,13 +171,13 @@ public:
     QImportMany(char const * prop, Share share = Share::any)
         : QImportBase(&T::staticMetaObject, prop)
     {
-        config(TypeMT<U>(), Shared(share), Imports(many));
+        config(TypeMT<U, void>(), Shared(share), Imports(many));
     }
 
     QImportMany(char const * prop, char const * name, Share share = Share::any)
         : QImportBase(&T::staticMetaObject, prop)
     {
-        config(TypeMT<U>(), Name(name), Shared(share), Imports(many));
+        config(TypeMT<U, void>(), Name(name), Shared(share), Imports(many));
     }
 };
 
@@ -188,13 +188,13 @@ public:
     QImportOptional(char const * prop, Share share = Share::any)
         : QImportBase(&T::staticMetaObject, prop)
     {
-        config(TypeT<U>(), Shared(share), Imports(optional));
+        config(TypeT<U, void>(), Shared(share), Imports(optional));
     }
 
     QImportOptional(char const * prop, char const * name, Share share = Share::any)
         : QImportBase(&T::staticMetaObject, prop)
     {
-        config(TypeT<U>(), Name(name), Shared(share), Imports(optional));
+        config(TypeT<U, void>(), Name(name), Shared(share), Imports(optional));
     }
 
 };
